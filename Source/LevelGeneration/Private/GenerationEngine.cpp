@@ -25,3 +25,10 @@ void AGenerationEngine::Tick(float DeltaTime)
 
 }
 
+void AGenerationEngine::SpawnNextRoom()
+{
+	FActorSpawnParameters params;
+	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	GetWorld()->SpawnActor<AActor>(Corridor, GetActorTransform(), params);
+}

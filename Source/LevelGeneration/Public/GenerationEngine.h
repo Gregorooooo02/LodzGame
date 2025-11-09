@@ -15,6 +15,12 @@ public:
 	// Sets default values for this actor's properties
 	AGenerationEngine();
 
+	UFUNCTION(BlueprintCallable, Category="Generation")
+		void SpawnNextRoom();
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf	<AActor> Corridor;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
