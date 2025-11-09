@@ -11,5 +11,6 @@ public class LodzGameEditorTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 
 		ExtraModuleNames.AddRange( new string[] { "LodzGame" } );
+    ExtraModuleNames.AddRange( new string[] { "LevelGeneration" } );
 	}
 }
