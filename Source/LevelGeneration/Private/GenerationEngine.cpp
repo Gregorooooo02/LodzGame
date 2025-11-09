@@ -15,7 +15,7 @@ AGenerationEngine::AGenerationEngine()
 void AGenerationEngine::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	SpawnFirstCorridor();
 }
 
 // Called every frame
@@ -25,10 +25,19 @@ void AGenerationEngine::Tick(float DeltaTime)
 
 }
 
-void AGenerationEngine::SpawnNextRoom()
+void AGenerationEngine::SpawnFirstCorridor()
+{
+	FActorSpawnParameters params;
+	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	params.Owner = this;
+
+	AActor* spawned = GetWorld()->SpawnActor<AActor>(StartCorridor, StartExitLocation, StartExitRotation, params);
+}
+
+void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 {
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	GetWorld()->SpawnActor<AActor>(Corridor, GetActorTransform(), params);
+	AActor* spawned = GetWorld()->SpawnActor<AActor>(Corridor, exitPosition->GetComponentLocation(), exitPosition->GetComponentRotation(), params);
 }

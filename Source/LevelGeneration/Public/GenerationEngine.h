@@ -16,10 +16,21 @@ public:
 	AGenerationEngine();
 
 	UFUNCTION(BlueprintCallable, Category="Generation")
-		void SpawnNextRoom();
+		void SpawnNextRoom(USceneComponent* exitPosition);
 
 	UPROPERTY(EditAnywhere)
 		TSubclassOf	<AActor> Corridor;
+	UPROPERTY(EditAnywhere)
+		float PartSize = 1000.0f;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf	<AActor> StartCorridor;
+
+	UPROPERTY(EditDefaultsOnly)
+		FVector StartExitLocation;
+
+	UPROPERTY(EditDefaultsOnly)
+		FRotator StartExitRotation;
 
 protected:
 	// Called when the game starts or when spawned
@@ -29,4 +40,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+private:
+	void SpawnFirstCorridor();
 };
