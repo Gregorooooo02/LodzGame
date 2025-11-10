@@ -18,7 +18,7 @@ public:
 	ARoomControl();
 
 	UFUNCTION(BlueprintCallable, Category = "Rooms")
-		void TriggerNextRoomSpawn(USceneComponent* exitPosition);
+		void TriggerNextRoomSpawn(USceneComponent* exitPosition, AActor* caller);
 
 protected:
 	// Called when the game starts or when spawned

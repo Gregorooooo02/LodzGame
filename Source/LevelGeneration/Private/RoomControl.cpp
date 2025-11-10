@@ -25,10 +25,10 @@ void ARoomControl::Tick(float DeltaTime)
 
 }
 
-void ARoomControl::TriggerNextRoomSpawn(USceneComponent* exitPosition)
+void ARoomControl::TriggerNextRoomSpawn(USceneComponent* exitPosition, AActor* caller)
 {
 	AGenerationEngine* engine = Cast<AGenerationEngine>(Owner);
 	if (engine != nullptr) {
-		engine->SpawnNextRoom(exitPosition);
+		engine->SpawnNextRoom(exitPosition,caller);
 	}
 }

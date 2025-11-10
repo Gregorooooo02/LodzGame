@@ -17,7 +17,6 @@ void AGenerationEngine::BeginPlay()
 {
 	Super::BeginPlay();
 	SpawnFirstCorridor();
-	//RoomSegments = std::vector<AActor*>();
 	DoorWeightSum = forwardDoorWeight + leftDoorWeight + rightDoorWeight;
 }
 
@@ -34,15 +33,19 @@ void AGenerationEngine::SpawnFirstCorridor()
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	params.Owner = this;
 
-	AActor* spawned = GetWorld()->SpawnActor<AActor>(StartCorridor, StartExitLocation, StartExitRotation, params);
+	RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(StartCorridor, StartExitLocation, StartExitRotation, params));
+	RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(StartingRoom, FVector::ZeroVector, FRotator::ZeroRotator, params));
 }
 
-void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
+void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition, AActor* previousCoridor)
 {
 	for (AActor* segment : RoomSegments) {
+		if (segment == previousCoridor) continue;
 		GetWorld()->DestroyActor(segment);
 	}
 	RoomSegments.clear();
+	RoomSegments.push_back(previousCoridor);
+
 
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -130,9 +133,9 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 
 		FVector exitPos = currentPoint + ((dimX - 0.5f) * parallelOffset) + doorPosIndex * perpendicularOffset;
 		doorIndices[0] = doorPosIndex;
-		GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0,rotation,0), params);
+		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0,rotation,0), params));
 		int coridorIndex = FMath::Rand() % Coridors.size();
-		GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation, 0), Coridorparams);
+		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation, 0), Coridorparams));
 	}
 
 	//left
@@ -142,9 +145,9 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 		int doorPosIndex = (FMath::Rand() % (1 + endIndex - startIndex)) + startIndex;
 		FVector exitPos = currentPoint + ((dimY - 0.5f) * perpendicularOffset) + doorPosIndex * parallelOffset;
 		doorIndices[1] = doorPosIndex;
-		GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation + 90, 0), params);
+		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation + 90, 0), params));
 		int coridorIndex = FMath::Rand() % Coridors.size();
-		GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams);
+		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams));
 	}
 
 	//right
@@ -154,78 +157,82 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 		int doorPosIndex = (FMath::Rand() % (1 + endIndex - startIndex)) + startIndex;
 		FVector exitPos = currentPoint - 0.5f * perpendicularOffset + doorPosIndex * parallelOffset;
 		doorIndices[2] = doorPosIndex;
-		GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation - 90, 0), params);
+		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation - 90, 0), params));
 		int coridorIndex = FMath::Rand() % Coridors.size();
-		GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams);
+		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams));
 	}
 	 
 	//Back wall
 	FVector startWallPos = currentPoint - 0.5f * parallelOffset;
 	for (int i = 0; i < dimY; i++) {
 		if (deletedCorners[0] && i == 0) {
-			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + 0.5f * perpendicularOffset + 0.5f * parallelOffset, FRotator(0, rotation + 90, 0), params);
+			RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + 0.5f * perpendicularOffset + 0.5f * parallelOffset, FRotator(0, rotation + 90, 0), params));
 			continue;
 		}
 		if (deletedCorners[1] && i == dimY - 1) { 
-			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + (i - 0.5f) * perpendicularOffset + 0.5f * parallelOffset, FRotator(0, rotation - 90, 0), params);
+			RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + (i - 0.5f) * perpendicularOffset + 0.5f * parallelOffset, FRotator(0, rotation - 90, 0), params));
 			continue; 
 		}
 		if (i == offset) {
-			GetWorld()->SpawnActor<AActor>(Doorframe, startWallPos + i * perpendicularOffset, FRotator(0, rotation, 0), params);
+			RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Doorframe, startWallPos + i * perpendicularOffset, FRotator(0, rotation, 0), params));
 			continue;
 		}
-		GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + i * perpendicularOffset, FRotator(0, rotation, 0), params);
+		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + i * perpendicularOffset, FRotator(0, rotation, 0), params));
 	}
 
 	//Left wall
 	startWallPos += 0.5f * parallelOffset - 0.5f * perpendicularOffset;
 	for (int i = 0; i < dimX; i++) {
 		if (deletedCorners[0] && i == 0) {
-			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + 0.5f * perpendicularOffset + 0.5f * parallelOffset, FRotator(0, rotation, 0), params);
+			RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + 0.5f * perpendicularOffset + 0.5f * parallelOffset, FRotator(0, rotation, 0), params));
 			continue;
 		}
 		if (deletedCorners[2] && i == dimX - 1) {
-			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + (i - 0.5f) * parallelOffset + 0.5f * perpendicularOffset, FRotator(0, rotation + 180, 0), params);
+			RoomSegments.push_back(GetWorld()->SpawnActor<AActor>
+				(ExternalWall, startWallPos + (i - 0.5f) * parallelOffset + 0.5f * perpendicularOffset, FRotator(0, rotation + 180, 0), params));
 			continue;
 		}
 		if (doorIndices[2] != -1 && i == doorIndices[2]) {
 			continue;
 		}
-		GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + i * parallelOffset, FRotator(0, rotation - 90, 0), params);
+		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + i * parallelOffset, FRotator(0, rotation - 90, 0), params));
 	}
 
 	//Forward wall
 	startWallPos += (dimX - 0.5f) * parallelOffset + 0.5f * perpendicularOffset;
 	for (int i = 0; i < dimY; i++) {
 		if (deletedCorners[2] && i == 0) {
-			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + 0.5f * perpendicularOffset - 0.5f * parallelOffset, FRotator(0, rotation + 90, 0), params);
+			RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + 0.5f * perpendicularOffset - 0.5f * parallelOffset, FRotator(0, rotation + 90, 0), params));
 			continue;
 		}
 		if (deletedCorners[3] && i == dimY - 1) {
-			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + (i - 0.5f) * perpendicularOffset - 0.5f * parallelOffset, FRotator(0, rotation - 90, 0), params);
+			RoomSegments.push_back(GetWorld()->SpawnActor<AActor>
+				(ExternalWall, startWallPos + (i - 0.5f) * perpendicularOffset - 0.5f * parallelOffset, FRotator(0, rotation - 90, 0), params));
 			continue;
 		}
 		if (doorIndices[0] != -1 && i == doorIndices[0]) {
 			continue;
 		}
-		GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + i * perpendicularOffset, FRotator(0, rotation + 180, 0), params);
+		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + i * perpendicularOffset, FRotator(0, rotation + 180, 0), params));
 	}
 	
 	//Right wall
 	startWallPos += -0.5f * parallelOffset + (dimY - 0.5f) * perpendicularOffset;
 	for (int i = 0; i < dimX; i++) {
 		if (deletedCorners[3] && i == 0) {
-			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos - 0.5f * perpendicularOffset - 0.5f * parallelOffset, FRotator(0, rotation+180, 0), params);
+			RoomSegments.push_back(GetWorld()->SpawnActor<AActor>
+				(ExternalWall, startWallPos - 0.5f * perpendicularOffset - 0.5f * parallelOffset, FRotator(0, rotation+180, 0), params));
 			continue;
 		}
 		if (deletedCorners[1] && i == dimX - 1) {
-			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos - (i - 0.5f) * parallelOffset - 0.5f * perpendicularOffset, FRotator(0, rotation, 0), params);
+			RoomSegments.push_back(GetWorld()->SpawnActor<AActor>
+				(ExternalWall, startWallPos - (i - 0.5f) * parallelOffset - 0.5f * perpendicularOffset, FRotator(0, rotation, 0), params));
 			continue;
 		}
 		if (doorIndices[1] != -1 && i == (dimX - (doorIndices[1] + 1))) {
 			continue;
 		}
-		GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos - i * parallelOffset, FRotator(0, rotation + 90, 0), params);
+		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos - i * parallelOffset, FRotator(0, rotation + 90, 0), params));
 	}
 }
 
@@ -233,5 +240,6 @@ void AGenerationEngine::LoadCoridor(TSubclassOf	<AActor> coridor)
 {
 	Coridors.push_back(coridor);
 }
+
 
 

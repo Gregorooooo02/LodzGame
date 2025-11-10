@@ -18,7 +18,7 @@ public:
 	AGenerationEngine();
 
 	UFUNCTION(BlueprintCallable, Category="Generation")
-		void SpawnNextRoom(USceneComponent* exitPosition);
+		void SpawnNextRoom(USceneComponent* exitPosition,AActor* previousCoridor);
 
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 		void LoadCoridor(TSubclassOf<AActor> coridor);
@@ -43,6 +43,8 @@ public:
 		TSubclassOf	<AActor> Doorframe;
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf	<AActor> ExternalWall;
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf	<AActor> StartingRoom;
 
 	UPROPERTY(EditDefaultsOnly)
 		unsigned int minRoomDim = 3;
