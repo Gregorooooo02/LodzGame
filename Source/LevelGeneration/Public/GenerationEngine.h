@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include <vector>
 #include "GenerationEngine.generated.h"
+
 
 UCLASS()
 class LEVELGENERATION_API AGenerationEngine : public AActor
@@ -32,6 +34,29 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		FRotator StartExitRotation;
 
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf	<AActor> RoomSegment;
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf	<AActor> Doorframe;
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf	<AActor> ExternalWall;
+
+	UPROPERTY(EditDefaultsOnly)
+		unsigned int minRoomDim = 3;
+
+	UPROPERTY(EditDefaultsOnly)
+		unsigned int maxRoomDim = 7;
+
+	UPROPERTY(EditDefaultsOnly)
+		unsigned int forwardDoorWeight = 1;
+	UPROPERTY(EditDefaultsOnly)
+		unsigned int leftDoorWeight = 1;
+	UPROPERTY(EditDefaultsOnly)
+		unsigned int rightDoorWeight = 1;
+	UPROPERTY(EditDefaultsOnly)
+		float segmentDeletionChance = 10.0f;
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -42,4 +67,7 @@ public:
 
 private:
 	void SpawnFirstCorridor();
+	std::vector<AActor*> RoomSegments;
+	unsigned int DoorWeightSum;
+
 };
