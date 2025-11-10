@@ -20,6 +20,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Generation")
 		void SpawnNextRoom(USceneComponent* exitPosition);
 
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+		void LoadCoridor(TSubclassOf<AActor> coridor);
+
 	UPROPERTY(EditAnywhere)
 		TSubclassOf	<AActor> Corridor;
 	UPROPERTY(EditAnywhere)
@@ -68,6 +71,7 @@ public:
 private:
 	void SpawnFirstCorridor();
 	std::vector<AActor*> RoomSegments;
+	std::vector<TSubclassOf	<AActor>> Coridors;
 	unsigned int DoorWeightSum;
 
 };

@@ -47,6 +47,10 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+	FActorSpawnParameters Coridorparams;
+	Coridorparams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Coridorparams.Owner = this;
+
 	int32 dimX = (FMath::Rand() % (1 + maxRoomDim - minRoomDim)) + minRoomDim;
 	int32 dimY = (FMath::Rand() % (1 + maxRoomDim - minRoomDim)) + minRoomDim;
 
@@ -127,6 +131,8 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 		FVector exitPos = currentPoint + ((dimX - 0.5f) * parallelOffset) + doorPosIndex * perpendicularOffset;
 		doorIndices[0] = doorPosIndex;
 		GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0,rotation,0), params);
+		int coridorIndex = FMath::Rand() % Coridors.size();
+		GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation, 0), Coridorparams);
 	}
 
 	//left
@@ -136,7 +142,9 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 		int doorPosIndex = (FMath::Rand() % (1 + endIndex - startIndex)) + startIndex;
 		FVector exitPos = currentPoint + ((dimY - 0.5f) * perpendicularOffset) + doorPosIndex * parallelOffset;
 		doorIndices[1] = doorPosIndex;
-		GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation - 90, 0), params);
+		GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation + 90, 0), params);
+		int coridorIndex = FMath::Rand() % Coridors.size();
+		GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams);
 	}
 
 	//right
@@ -146,7 +154,9 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 		int doorPosIndex = (FMath::Rand() % (1 + endIndex - startIndex)) + startIndex;
 		FVector exitPos = currentPoint - 0.5f * perpendicularOffset + doorPosIndex * parallelOffset;
 		doorIndices[2] = doorPosIndex;
-		GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation + 90, 0), params);
+		GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation - 90, 0), params);
+		int coridorIndex = FMath::Rand() % Coridors.size();
+		GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams);
 	}
 	 
 	//Back wall
@@ -218,3 +228,10 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 		GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos - i * parallelOffset, FRotator(0, rotation + 90, 0), params);
 	}
 }
+
+void AGenerationEngine::LoadCoridor(TSubclassOf	<AActor> coridor)
+{
+	Coridors.push_back(coridor);
+}
+
+
