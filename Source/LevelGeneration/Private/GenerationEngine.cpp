@@ -153,11 +153,11 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 	FVector startWallPos = currentPoint - 0.5f * parallelOffset;
 	for (int i = 0; i < dimY; i++) {
 		if (deletedCorners[0] && i == 0) {
-			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + 0.5f * perpendicularOffset + 0.5f * parallelOffset, FRotator(0, rotation - 90, 0), params);
+			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + 0.5f * perpendicularOffset + 0.5f * parallelOffset, FRotator(0, rotation + 90, 0), params);
 			continue;
 		}
 		if (deletedCorners[1] && i == dimY - 1) { 
-			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + (i - 0.5f) * perpendicularOffset + 0.5f * parallelOffset, FRotator(0, rotation + 90, 0), params);
+			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + (i - 0.5f) * perpendicularOffset + 0.5f * parallelOffset, FRotator(0, rotation - 90, 0), params);
 			continue; 
 		}
 		if (i == offset) {
@@ -174,7 +174,7 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + 0.5f * perpendicularOffset + 0.5f * parallelOffset, FRotator(0, rotation, 0), params);
 			continue;
 		}
-		if (deletedCorners[3] && i == dimX - 1) {
+		if (deletedCorners[2] && i == dimX - 1) {
 			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + (i - 0.5f) * parallelOffset + 0.5f * perpendicularOffset, FRotator(0, rotation + 180, 0), params);
 			continue;
 		}
@@ -183,5 +183,38 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition)
 		}
 		GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + i * parallelOffset, FRotator(0, rotation - 90, 0), params);
 	}
+
+	//Forward wall
+	startWallPos += (dimX - 0.5f) * parallelOffset + 0.5f * perpendicularOffset;
+	for (int i = 0; i < dimY; i++) {
+		if (deletedCorners[2] && i == 0) {
+			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + 0.5f * perpendicularOffset - 0.5f * parallelOffset, FRotator(0, rotation + 90, 0), params);
+			continue;
+		}
+		if (deletedCorners[3] && i == dimY - 1) {
+			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + (i - 0.5f) * perpendicularOffset - 0.5f * parallelOffset, FRotator(0, rotation - 90, 0), params);
+			continue;
+		}
+		if (doorIndices[0] != -1 && i == doorIndices[0]) {
+			continue;
+		}
+		GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos + i * perpendicularOffset, FRotator(0, rotation + 180, 0), params);
+	}
 	
+	//Right wall
+	startWallPos += -0.5f * parallelOffset + (dimY - 0.5f) * perpendicularOffset;
+	for (int i = 0; i < dimX; i++) {
+		if (deletedCorners[3] && i == 0) {
+			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos - 0.5f * perpendicularOffset - 0.5f * parallelOffset, FRotator(0, rotation+180, 0), params);
+			continue;
+		}
+		if (deletedCorners[1] && i == dimX - 1) {
+			GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos - (i - 0.5f) * parallelOffset - 0.5f * perpendicularOffset, FRotator(0, rotation, 0), params);
+			continue;
+		}
+		if (doorIndices[1] != -1 && i == (dimX - (doorIndices[1] + 1))) {
+			continue;
+		}
+		GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos - i * parallelOffset, FRotator(0, rotation + 90, 0), params);
+	}
 }
