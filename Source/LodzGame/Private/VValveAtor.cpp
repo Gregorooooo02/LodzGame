@@ -1,0 +1,322 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#include "VValveAtor.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
+
+// Sets default values
+AVValveAtor::AVValveAtor()
+{
+	// Set this actor to call Tick() every frame.
+	PrimaryActorTick.bCanEverTick = true;
+
+	ValveBase = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ValveBase"));
+	RootComponent = ValveBase;
+	ValveBase->SetSimulatePhysics(false);
+	ValveBase->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	ValveBase->SetCollisionObjectType(ECC_WorldStatic);
+	
+	ValveMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ValveMesh"));
+	ValveMesh->SetupAttachment(RootComponent);
+	ValveMesh->SetSimulatePhysics(false);
+	ValveMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	ValveMesh->SetCollisionObjectType(ECC_WorldDynamic);
+	ValveMesh->SetCollisionResponseToAllChannels(ECR_Block);
+	ValveMesh->CanCharacterStepUpOn = ECB_No;
+	
+	InteractionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionSphere"));
+	InteractionSphere->SetupAttachment(ValveMesh);
+	InteractionSphere->SetSphereRadius(100.0f);
+	InteractionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	InteractionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+	InteractionSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+}
+
+// Called when the game starts or when spawned
+void AVValveAtor::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+// Called every frame
+void AVValveAtor::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bValveDetached)
+		return;
+	if (!bIsInteracting)
+		return;
+
+	if (!InteractingPlayer || !IsValid(InteractingPlayer))
+	{
+		if (bIsInteracting)
+		{
+			UE_LOG(LogTemp, Error, TEXT("InteractingPlayer became invalid during interaction!"));
+			bIsInteracting = false;
+			InteractingPlayer = nullptr;
+		}
+		return;
+	}
+
+	ACharacter* PlayerCharacter = InteractingPlayer->GetCharacter();
+	if (!PlayerCharacter || !IsValid(PlayerCharacter))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player has no character, stopping interaction"));
+		StopInteraction();
+		return;
+	}
+
+	float CheckDistance = FVector::Dist(PlayerCharacter->GetActorLocation(), GetActorLocation());
+	if (CheckDistance > InteractionDistance)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player moved too far from valve (%.1f > %.1f), stopping interaction"), CheckDistance, InteractionDistance);
+		StopInteraction();
+		return;
+	}
+
+	float MouseX = 0.0f;
+	float MouseY = 0.0f;
+
+	if (InteractingPlayer->PlayerCameraManager)
+	{
+		InteractingPlayer->GetMousePosition(MouseX, MouseY);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Player has no Camera Manager!"));
+		StopInteraction();
+		return;
+	}
+
+	float MouseDeltaX = MouseX - LastMouseX;
+	LastMouseX = MouseX;
+
+	if (FMath::Abs(MouseDeltaX) > 0.01f)
+	{
+		RotateValve(MouseDeltaX);
+	}
+}
+
+void AVValveAtor::TryStartInteraction(APlayerController* PlayerController)
+{
+	if (!PlayerController || bValveDetached || bIsInteracting)
+		return;
+
+	ACharacter* PlayerCharacter = PlayerController->GetCharacter();
+	if (!PlayerCharacter)
+		return;
+
+	float Distance = FVector::Dist(PlayerCharacter->GetActorLocation(), GetActorLocation());
+	if (Distance > InteractionDistance)
+		return;
+
+	bIsInteracting = true;
+	InteractingPlayer = PlayerController;
+
+	float MouseX, MouseY;
+	PlayerController->GetMousePosition(MouseX, MouseY);
+	LastMouseX = MouseX;
+
+	OriginalControlRotation = PlayerController->GetControlRotation();
+	bOriginalShowMouseCursor = PlayerController->bShowMouseCursor;
+
+	PlayerController->SetIgnoreLookInput(true);
+	PlayerController->bShowMouseCursor = false;
+
+	FInputModeGameOnly InputMode;
+	InputMode.SetConsumeCaptureMouseDown(false);
+	PlayerController->SetInputMode(InputMode);
+
+	UE_LOG(LogTemp, Warning, TEXT("Valve interaction started! Player: %s"), *PlayerController->GetName());
+}
+
+void AVValveAtor::StopInteraction()
+{
+	if (!bIsInteracting || !InteractingPlayer)
+		return;
+
+	UE_LOG(LogTemp, Warning, TEXT("Stopping valve interaction for player: %s"), *InteractingPlayer->GetName());
+
+	InteractingPlayer->ResetIgnoreLookInput();
+	InteractingPlayer->bShowMouseCursor = bOriginalShowMouseCursor;
+
+	if (bOriginalShowMouseCursor)
+	{
+		FInputModeGameAndUI InputMode;
+		InputMode.SetHideCursorDuringCapture(false);
+		InteractingPlayer->SetInputMode(InputMode);
+	}
+	else
+	{
+		FInputModeGameOnly InputMode;
+		InteractingPlayer->SetInputMode(InputMode);
+	}
+
+	bIsInteracting = false;
+	InteractingPlayer = nullptr;
+
+	UE_LOG(LogTemp, Warning, TEXT("Valve interaction stopped! Camera should be unlocked now."));
+}
+
+void AVValveAtor::RotateValve(float MouseDeltaX)
+{
+	if (!ValveMesh || bValveDetached)
+		return;
+
+	float RotationDelta = MouseDeltaX * MouseSensitivity;
+	CurrentRotation += RotationDelta;
+
+	FRotator CurrentRot = ValveMesh->GetRelativeRotation();
+	CurrentRot.Roll += RotationDelta;
+	ValveMesh->SetRelativeRotation(CurrentRot);
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 0.016f, FColor::Yellow, 
+			FString::Printf(TEXT("Rotation: %.1f / %.1f"), FMath::Abs(CurrentRotation), RequiredRotation));
+	}
+
+	if (FMath::Abs(CurrentRotation) >= RequiredRotation)
+	{
+		DetachValve();
+	}
+}
+
+void AVValveAtor::DetachValve()
+{
+	if (bValveDetached || !ValveMesh)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DetachValve called but already detached or no mesh!"));
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Starting valve detachment..."));
+	bValveDetached = true;
+
+	StopInteraction();
+
+	if (!IsValid(ValveMesh))
+	{
+		UE_LOG(LogTemp, Error, TEXT("ValveMesh is not valid!"));
+		return;
+	}
+
+	UStaticMesh* StaticMeshAsset = ValveMesh->GetStaticMesh();
+	if (!StaticMeshAsset)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ValveMesh has no Static Mesh asset assigned! Cannot enable physics."));
+		return;
+	}
+
+	if (!StaticMeshAsset->GetBodySetup())
+	{
+		UE_LOG(LogTemp, Error, TEXT("ValveMesh has no collision! Add collision in Static Mesh Editor."));
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Mesh is valid, proceeding with detachment..."));
+
+	FTransform CurrentTransform = ValveMesh->GetComponentTransform();
+	ValveMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	ValveMesh->SetWorldTransform(CurrentTransform);
+	
+	ValveMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	ValveMesh->SetCollisionObjectType(ECC_PhysicsBody);
+	ValveMesh->SetCollisionResponseToAllChannels(ECR_Block);
+	ValveMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	ValveMesh->SetMassOverrideInKg(NAME_None, 10.0f, true); // 10 kg
+	
+	ValveMesh->SetSimulatePhysics(true);
+	ValveMesh->SetEnableGravity(true);
+	
+	if (!ValveMesh->IsSimulatingPhysics())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to enable physics on ValveMesh!"));
+		ValveMesh->SetSimulatePhysics(false);
+		ValveMesh->SetSimulatePhysics(true);
+		
+		if (!ValveMesh->IsSimulatingPhysics())
+		{
+			UE_LOG(LogTemp, Error, TEXT("Physics still not working! Check collision setup."));
+			return;
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Physics enabled successfully!"));
+	
+	FVector ImpulseDirection = GetActorForwardVector() + FVector(0, 0, 0.5f);
+	ImpulseDirection.Normalize();
+	ValveMesh->AddImpulse(ImpulseDirection * 500.0f, NAME_None, true);
+
+	FVector AngularVelocity = FVector(FMath::RandRange(-50.0f, 50.0f), 
+									  FMath::RandRange(-50.0f, 50.0f), 
+									  FMath::RandRange(-50.0f, 50.0f));
+	ValveMesh->SetPhysicsAngularVelocityInDegrees(AngularVelocity);
+
+	UE_LOG(LogTemp, Warning, TEXT("Valve detached successfully!"));
+
+	LowerWaterLevel();
+	PrimaryActorTick.bCanEverTick = false;
+}
+
+void AVValveAtor::LowerWaterLevel()
+{
+	if (!WaterLevelManager)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Water Level Manager not set! Skipping water level lowering."));
+		return;
+	}
+
+	if (!IsValid(WaterLevelManager))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Water Level Manager is not valid!"));
+		return;
+	}
+
+	UClass* ManagerClass = WaterLevelManager->GetClass();
+	if (!ManagerClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to get class from WaterLevelManager!"));
+		return;
+	}
+
+	FProperty* WaterLevelProp = ManagerClass->FindPropertyByName(FName("WaterLevel"));
+	if (!WaterLevelProp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("WaterLevel property not found in BP_WaterLevelManager!"));
+		return;
+	}
+
+	if (FFloatProperty* FloatProp = CastField<FFloatProperty>(WaterLevelProp))
+	{
+		float* CurrentWaterLevel = FloatProp->ContainerPtrToValuePtr<float>(WaterLevelManager);
+		if (CurrentWaterLevel)
+		{
+			float OldLevel = *CurrentWaterLevel;
+			*CurrentWaterLevel -= WaterLevelDecrease;
+			
+			UE_LOG(LogTemp, Warning, TEXT("Water level changed from %.1f to %.1f"), OldLevel, *CurrentWaterLevel);
+			return;
+		}
+	}
+	else if (FDoubleProperty* DoubleProp = CastField<FDoubleProperty>(WaterLevelProp))
+	{
+		double* CurrentWaterLevel = DoubleProp->ContainerPtrToValuePtr<double>(WaterLevelManager);
+		if (CurrentWaterLevel)
+		{
+			double OldLevel = *CurrentWaterLevel;
+			*CurrentWaterLevel -= WaterLevelDecrease;
+			
+			UE_LOG(LogTemp, Warning, TEXT("Water level changed from %.1f to %.1f"), OldLevel, *CurrentWaterLevel);
+			return;
+		}
+	}
+
+	UE_LOG(LogTemp, Error, TEXT("WaterLevel property type not supported (must be Float or Double)"));
+}
+
