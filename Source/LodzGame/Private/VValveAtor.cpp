@@ -278,6 +278,24 @@ void AVValveAtor::LowerWaterLevel()
 		return;
 	}
 
+	// Try to call Blueprint function LowerWater first
+	UFunction* LowerWaterFunc = WaterLevelManager->FindFunction(FName("LowerWater"));
+	if (LowerWaterFunc)
+	{
+		struct FLowerWaterParams
+		{
+			float Amount;
+		};
+		
+		FLowerWaterParams Params;
+		Params.Amount = WaterLevelDecrease;
+		
+		WaterLevelManager->ProcessEvent(LowerWaterFunc, &Params);
+		UE_LOG(LogTemp, Warning, TEXT("Called LowerWater Blueprint function with amount: %.1f"), WaterLevelDecrease);
+		return;
+	}
+
+	// Fallback: Direct property modification
 	UClass* ManagerClass = WaterLevelManager->GetClass();
 	if (!ManagerClass)
 	{

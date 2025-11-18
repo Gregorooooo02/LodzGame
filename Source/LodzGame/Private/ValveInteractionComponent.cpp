@@ -21,14 +21,12 @@ void UValveInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickT
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// Opcjonalnie: pokazuj UI prompt gdy gracz jest blisko zaworu
 	AVValveAtor* NearbyValve = FindNearbyValve();
 	if (NearbyValve && NearbyValve->CanInteract())
 	{
-		// Tutaj moøesz pokazaÊ UI "Naciúnij E aby uøyÊ zaworu"
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 0.016f, FColor::Green, TEXT("Press E to use valve"));
+			GEngine->AddOnScreenDebugMessage(-1, 0.016f, FColor::Green, TEXT("Press LMB to use valve"));
 		}
 	}
 }
@@ -39,14 +37,12 @@ void UValveInteractionComponent::TryInteractWithValve()
 	if (!PC)
 		return;
 
-	// Jeúli juø jesteúmy w interakcji, przestaÒ
 	if (CurrentValve)
 	{
 		StopValveInteraction();
 		return;
 	}
 
-	// Znajdü zawÛr w pobliøu
 	AVValveAtor* NearbyValve = FindNearbyValve();
 	if (NearbyValve && NearbyValve->CanInteract())
 	{
@@ -80,7 +76,6 @@ AVValveAtor* UValveInteractionComponent::FindNearbyValve()
 	if (!Owner)
 		return nullptr;
 
-	// Znajdü wszystkie zawory w pobliøu
 	TArray<AActor*> FoundValves;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AVValveAtor::StaticClass(), FoundValves);
 
