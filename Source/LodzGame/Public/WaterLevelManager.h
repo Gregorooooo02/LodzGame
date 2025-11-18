@@ -34,6 +34,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Settings")
 	AActor* WaterBody = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Settings")
+	bool bUseWaterGenerator = true;
+
 	// Functions
 	UFUNCTION(BlueprintCallable, Category = "Water")
 	void LowerWater(float Amount);
@@ -54,4 +57,5 @@ private:
 	float StartWaterLevel = 0.0f;
 	
 	void UpdateWaterPosition();
+	AActor* FindWaterGenerator();
 };

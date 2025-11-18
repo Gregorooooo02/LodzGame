@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WaterLevelManager.h"
+#include "WaterGenerator.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AWaterLevelManager::AWaterLevelManager()
@@ -17,6 +19,12 @@ void AWaterLevelManager::BeginPlay()
 	
 	TargetWaterLevel = MaxWaterLevel;
 	StartWaterLevel = WaterLevel;
+	
+	// Auto-find WaterGenerator if enabled and not assigned
+	if (bUseWaterGenerator && !WaterBody)
+	{
+		WaterBody = FindWaterGenerator();
+	}
 }
 
 // Called every frame
@@ -87,5 +95,18 @@ void AWaterLevelManager::UpdateWaterPosition()
 		CurrentLocation.Z = WaterLevel;
 		WaterBody->SetActorLocation(CurrentLocation);
 	}
+}
+
+AActor* AWaterLevelManager::FindWaterGenerator()
+{
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWaterGenerator::StaticClass(), FoundActors);
+	
+	if (FoundActors.Num() > 0)
+	{
+		return FoundActors[0];
+	}
+	
+	return nullptr;
 }
 
