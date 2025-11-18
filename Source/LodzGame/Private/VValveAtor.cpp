@@ -56,7 +56,6 @@ void AVValveAtor::Tick(float DeltaTime)
 	{
 		if (bIsInteracting)
 		{
-			UE_LOG(LogTemp, Error, TEXT("InteractingPlayer became invalid during interaction!"));
 			bIsInteracting = false;
 			InteractingPlayer = nullptr;
 		}
@@ -66,7 +65,6 @@ void AVValveAtor::Tick(float DeltaTime)
 	ACharacter* PlayerCharacter = InteractingPlayer->GetCharacter();
 	if (!PlayerCharacter || !IsValid(PlayerCharacter))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Player has no character, stopping interaction"));
 		StopInteraction();
 		return;
 	}
@@ -74,7 +72,6 @@ void AVValveAtor::Tick(float DeltaTime)
 	float CheckDistance = FVector::Dist(PlayerCharacter->GetActorLocation(), GetActorLocation());
 	if (CheckDistance > InteractionDistance)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Player moved too far from valve (%.1f > %.1f), stopping interaction"), CheckDistance, InteractionDistance);
 		StopInteraction();
 		return;
 	}
@@ -88,17 +85,17 @@ void AVValveAtor::Tick(float DeltaTime)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Player has no Camera Manager!"));
 		StopInteraction();
 		return;
 	}
 
-	float MouseDeltaX = MouseX - LastMouseX;
-	LastMouseX = MouseX;
+	float MouseDeltaX = MouseX - LastMousePosition.X;
+	float MouseDeltaY = MouseY - LastMousePosition.Y;
 
-	if (FMath::Abs(MouseDeltaX) > 0.01f)
+	// Only process if mouse moved enough
+	if (FMath::Abs(MouseDeltaX) > 0.01f || FMath::Abs(MouseDeltaY) > 0.01f)
 	{
-		RotateValve(MouseDeltaX);
+		RotateValve(MouseDeltaX, MouseDeltaY);
 	}
 }
 
@@ -118,9 +115,14 @@ void AVValveAtor::TryStartInteraction(APlayerController* PlayerController)
 	bIsInteracting = true;
 	InteractingPlayer = PlayerController;
 
+	// Get screen center
+	int32 ViewportSizeX, ViewportSizeY;
+	PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+	ScreenCenter = FVector2D(ViewportSizeX * 0.5f, ViewportSizeY * 0.5f);
+
 	float MouseX, MouseY;
 	PlayerController->GetMousePosition(MouseX, MouseY);
-	LastMouseX = MouseX;
+	LastMousePosition = FVector2D(MouseX, MouseY);
 
 	OriginalControlRotation = PlayerController->GetControlRotation();
 	bOriginalShowMouseCursor = PlayerController->bShowMouseCursor;
@@ -163,28 +165,61 @@ void AVValveAtor::StopInteraction()
 	UE_LOG(LogTemp, Warning, TEXT("Valve interaction stopped! Camera should be unlocked now."));
 }
 
-void AVValveAtor::RotateValve(float MouseDeltaX)
+void AVValveAtor::RotateValve(float MouseDeltaX, float MouseDeltaY)
 {
 	if (!ValveMesh || bValveDetached)
 		return;
 
-	float RotationDelta = MouseDeltaX * MouseSensitivity;
-	CurrentRotation += RotationDelta;
+	// Calculate rotation angle based on circular mouse movement
+	float MouseX, MouseY;
+	InteractingPlayer->GetMousePosition(MouseX, MouseY);
+	FVector2D CurrentMousePosition(MouseX, MouseY);
 
-	FRotator CurrentRot = ValveMesh->GetRelativeRotation();
-	CurrentRot.Roll += RotationDelta;
-	ValveMesh->SetRelativeRotation(CurrentRot);
-
-	if (GEngine)
+	float RotationDelta = CalculateRotationAngle(CurrentMousePosition, LastMousePosition);
+	
+	// Only allow clockwise rotation (positive values)
+	if (RotationDelta > MinRotationSpeed)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.016f, FColor::Yellow, 
-			FString::Printf(TEXT("Rotation: %.1f / %.1f"), FMath::Abs(CurrentRotation), RequiredRotation));
+		CurrentRotation += RotationDelta;
+
+		FRotator CurrentRot = ValveMesh->GetRelativeRotation();
+		CurrentRot.Roll += RotationDelta;
+		ValveMesh->SetRelativeRotation(CurrentRot);
+
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 0.016f, FColor::Yellow, 
+				FString::Printf(TEXT("Rotation: %.1f / %.1f"), CurrentRotation, RequiredRotation));
+		}
 	}
 
-	if (FMath::Abs(CurrentRotation) >= RequiredRotation)
+	LastMousePosition = CurrentMousePosition;
+
+	if (CurrentRotation >= RequiredRotation)
 	{
 		DetachValve();
 	}
+}
+
+float AVValveAtor::CalculateRotationAngle(FVector2D CurrentPos, FVector2D PreviousPos)
+{
+	FVector2D PrevVector = PreviousPos - ScreenCenter;
+	FVector2D CurrentVector = CurrentPos - ScreenCenter;
+
+	PrevVector.Normalize();
+	CurrentVector.Normalize();
+
+	// Calculate cross product (Z component in 2D space)
+	float CrossZ = PrevVector.X * CurrentVector.Y - PrevVector.Y * CurrentVector.X;
+	
+	float DotProduct = FVector2D::DotProduct(PrevVector, CurrentVector);
+	DotProduct = FMath::Clamp(DotProduct, -1.0f, 1.0f);
+	float Angle = FMath::Acos(DotProduct) * (180.0f / PI);
+
+	// Clockwise = negative CrossZ in screen space (Y-axis points down)
+	float DirectionalAngle = (CrossZ < 0) ? Angle : -Angle;
+
+	return DirectionalAngle * MouseSensitivity;
 }
 
 void AVValveAtor::DetachValve()

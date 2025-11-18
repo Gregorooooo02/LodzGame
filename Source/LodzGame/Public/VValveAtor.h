@@ -49,6 +49,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valve Settings")
 	class AActor* WaterLevelManager;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valve Settings")
+	float MinRotationSpeed = 0.5f;
+
 	// Public functions to use in Blueprints
 	UFUNCTION(BlueprintCallable, Category = "Valve")
 	void TryStartInteraction(class APlayerController* PlayerController);
@@ -61,7 +64,7 @@ public:
 
 protected:
 	// Internal functions
-	void RotateValve(float MouseDeltaX);
+	void RotateValve(float MouseDeltaX, float MouseDeltaY);
 	void DetachValve();
 	void LowerWaterLevel();
 
@@ -69,11 +72,14 @@ private:
 	bool bIsInteracting = false;
 	bool bValveDetached = false;
 	float CurrentRotation = 0.0f;
-	float LastMouseX = 0.0f;
+	FVector2D LastMousePosition;
+	FVector2D ScreenCenter;
 	
 	UPROPERTY()
 	class APlayerController* InteractingPlayer = nullptr;
 	
 	FRotator OriginalControlRotation;
 	bool bOriginalShowMouseCursor = false;
+	
+	float CalculateRotationAngle(FVector2D CurrentPos, FVector2D PreviousPos);
 };
