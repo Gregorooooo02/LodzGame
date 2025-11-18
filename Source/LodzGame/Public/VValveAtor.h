@@ -47,7 +47,7 @@ public:
 	float WaterLevelDecrease = 100.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valve Settings")
-	class AActor* WaterLevelManager;
+	class AWaterLevelManager* WaterLevelManager = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valve Settings")
 	float MinRotationSpeed = 0.5f;

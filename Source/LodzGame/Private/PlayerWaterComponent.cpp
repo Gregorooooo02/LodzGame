@@ -35,14 +35,14 @@ void UPlayerWaterComponent::BeginPlay()
 	}
 
 	// Auto-find WaterLevelManager if not assigned
-	if (!WaterManager)
+	if (!WaterLevelManager)
 	{
 		TArray<AActor*> FoundActors;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWaterLevelManager::StaticClass(), FoundActors);
 		
 		if (FoundActors.Num() > 0)
 		{
-			WaterManager = Cast<AWaterLevelManager>(FoundActors[0]);
+			WaterLevelManager = Cast<AWaterLevelManager>(FoundActors[0]);
 		}
 	}
 }
@@ -53,7 +53,7 @@ void UPlayerWaterComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!MovementComponent || !WaterManager)
+	if (!MovementComponent || !WaterLevelManager)
 		return;
 
 	float SubmersionLevel = CalculateSubmersionLevel();
@@ -76,7 +76,7 @@ void UPlayerWaterComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 
 float UPlayerWaterComponent::CalculateSubmersionLevel()
 {
-	if (!WaterManager)
+	if (!WaterLevelManager)
 		return 0.0f;
 	
 	AActor* Owner = GetOwner();
@@ -84,7 +84,7 @@ float UPlayerWaterComponent::CalculateSubmersionLevel()
 		return 0.0f;
 	
 	float CharacterZ = Owner->GetActorLocation().Z;
-	float WaterZ = WaterManager->WaterLevel;
+	float WaterZ = WaterLevelManager->WaterLevel;
 	
 	// Calculate depth in water (0 = feet at water surface, CharacterHeight = fully submerged)
 	float DepthInWater = WaterZ - (CharacterZ - CharacterHeight * 0.5f);

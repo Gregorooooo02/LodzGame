@@ -46,7 +46,6 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition, AActor* pre
 	RoomSegments.clear();
 	RoomSegments.push_back(previousCoridor);
 
-
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
@@ -64,7 +63,6 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition, AActor* pre
 	FVector perpendicularOffset = parallelOffset.RotateAngleAxis(90, FVector::UpVector);
 
 	FVector startPoint = exitPosition->GetComponentLocation();
-
 	startPoint += 0.5f * parallelOffset;
 
 	int32 offset = dimY / 2;
@@ -97,7 +95,7 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition, AActor* pre
 	
 	//Mask Forward->left->right
 	BYTE exitMask = 0;
-
+	
 	
 	if (doorCount != 3) {
 		unsigned int twoSum = forwardDoorWeight + leftDoorWeight;
@@ -233,6 +231,30 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition, AActor* pre
 			continue;
 		}
 		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos - i * parallelOffset, FRotator(0, rotation + 90, 0), params));
+	}
+
+	// TEMPORARY: Spawn valve in room center
+	FVector roomCenter = currentPoint + ((dimX - 1) * 0.5f * parallelOffset) + ((dimY - 1) * 0.5f * perpendicularOffset);
+	SpawnValveInRoomCenter(roomCenter, rotation);
+}
+
+// TEMPORARY: Function to spawn a valve in the center of the room
+// This is just for demonstration purposes and should be replaced with proper gameplay logic later
+void AGenerationEngine::SpawnValveInRoomCenter(FVector roomCenter, float roomRotation)
+{
+	if (!BP_Valve)
+		return;
+
+	FActorSpawnParameters params;
+	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	params.Owner = this;
+
+	FVector offset(0, 0, 70); // Adjust Z offset as needed
+	AActor* ValveActor = GetWorld()->SpawnActor<AActor>(BP_Valve, roomCenter + offset, FRotator(0, roomRotation, 0), params);
+	
+	if (ValveActor)
+	{
+		RoomSegments.push_back(ValveActor);
 	}
 }
 

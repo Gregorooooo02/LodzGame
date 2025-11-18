@@ -34,7 +34,7 @@ public:
 	float MinGravityMultiplier = 0.5f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Slowdown")
-	class AWaterLevelManager* WaterManager = nullptr;
+	class AWaterLevelManager* WaterLevelManager = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Slowdown")
 	float CharacterHeight = 180.0f;

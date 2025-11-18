@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "VValveAtor.h"
+#include "WaterLevelManager.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/PlayerController.h"
@@ -40,6 +41,16 @@ AVValveAtor::AVValveAtor()
 void AVValveAtor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Auto-find WaterManager if not set
+	if (!WaterLevelManager) {
+		TArray<AActor*> FoundActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWaterLevelManager::StaticClass(), FoundActors);
+
+		if (FoundActors.Num() > 0) {
+			WaterLevelManager = Cast<AWaterLevelManager>(FoundActors[0]);
+		}
+	}
 }
 
 // Called every frame

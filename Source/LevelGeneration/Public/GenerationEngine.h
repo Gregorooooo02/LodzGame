@@ -46,6 +46,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf	<AActor> StartingRoom;
 
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<AActor> BP_Valve;
+
 	UPROPERTY(EditDefaultsOnly)
 		unsigned int minRoomDim = 3;
 
@@ -72,6 +75,7 @@ public:
 
 private:
 	void SpawnFirstCorridor();
+	void SpawnValveInRoomCenter(FVector roomCenter, float roomRotation);
 	std::vector<AActor*> RoomSegments;
 	std::vector<TSubclassOf	<AActor>> Coridors;
 	unsigned int DoorWeightSum;
