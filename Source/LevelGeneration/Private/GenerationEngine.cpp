@@ -2,6 +2,7 @@
 
 
 #include "GenerationEngine.h"
+#include "Voronoi/Voronoi.h"
 
 
 // Sets default values
@@ -72,15 +73,31 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition, AActor* pre
 	bool deletedCorners[] = {false,false,false,false };
 	int deletionCounter = 0;
 	
+	TArray<FVector> BoundingPoints;
+	TArray<FVector> SitesPoints;
+	
+
 	for (int i = 0; i < dimX; ++i) {
 		for (int j = 0; j < dimY; ++j) {
 			if ((i == 0 || i == dimX - 1) && (j == 0 || j == dimY - 1)) {
 				int32 segmentDeletionRoll = (FMath::Rand() % 100);
 				if (segmentDeletionRoll > segmentDeletionChance) {
 					RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(RoomSegment, currentPoint + (i * parallelOffset) + (j * perpendicularOffset), FRotator::ZeroRotator, params));
+					int indexX = (i == 0 ? -0.5f : i + 0.5f);
+					int indexY = (j == 0 ? -0.5f : j + 0.5f);
+					BoundingPoints.Add(currentPoint + (indexX * parallelOffset) + (indexY * perpendicularOffset));
+					//SitesPoints.Add(currentPoint + (i * parallelOffset) + (j * perpendicularOffset));
 				}
 				else {
 					deletedCorners[deletionCounter] = true;
+					int baseindexX = (i == 0 ? 0.5f : i - 0.5f);
+					int baseindexY = (j == 0 ? 0.5f : j - 0.5f);
+					FVector basePoint = currentPoint + (baseindexX * parallelOffset) + (baseindexY * perpendicularOffset);
+					FVector pointX = basePoint + (i == 0 ? -parallelOffset : parallelOffset);
+					FVector pointY = basePoint + (j == 0 ? -perpendicularOffset : perpendicularOffset);
+					BoundingPoints.Add(basePoint);
+					BoundingPoints.Add(pointX);
+					BoundingPoints.Add(pointY);
 				}
 				deletionCounter++;
 			}
@@ -90,6 +107,19 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition, AActor* pre
 			}
 		}
 	}
+	SitesPoints.Add(currentPoint);
+	FBox RoomBoundingBox(BoundingPoints);
+	TArray<FVoronoiCellInfo> AllCells{};
+
+	FVoronoiDiagram Diagram = FVoronoiDiagram(SitesPoints, RoomBoundingBox, 0.0, 0.0);
+	Diagram.ComputeAllCells(AllCells);
+
+	//for (auto cell : AllCells) {
+	//	for (auto cellVertex : cell.Vertices) {
+	//		UE_LOG(LogTemp, Warning, TEXT("\tVertex data: (%.2f, %.2f, %.2f)"), cellVertex.X, cellVertex.Y, cellVertex.Z);
+	//	}
+	//}
+	
 
 	int32 doorCount = (FMath::Rand() % 3) + 1;
 	
