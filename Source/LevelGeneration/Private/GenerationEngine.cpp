@@ -1,9 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "GenerationEngine.h"
-#include "Voronoi/Voronoi.h"
-
 
 // Sets default values
 AGenerationEngine::AGenerationEngine()
@@ -107,20 +104,10 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition, AActor* pre
 			}
 		}
 	}
-	SitesPoints.Add(currentPoint);
-	FBox RoomBoundingBox(BoundingPoints);
-	TArray<FVoronoiCellInfo> AllCells{};
-
-	FVoronoiDiagram Diagram = FVoronoiDiagram(SitesPoints, RoomBoundingBox, 0.0, 0.0);
-	Diagram.ComputeAllCells(AllCells);
-
-	//for (auto cell : AllCells) {
-	//	for (auto cellVertex : cell.Vertices) {
-	//		UE_LOG(LogTemp, Warning, TEXT("\tVertex data: (%.2f, %.2f, %.2f)"), cellVertex.X, cellVertex.Y, cellVertex.Z);
-	//	}
-	//}
 	
-
+	FBox RoomBoundingBox(BoundingPoints);
+	TArray<FVector> voronoiPoints = GenerateVoronoi(SitesPoints, RoomBoundingBox);
+	
 	int32 doorCount = (FMath::Rand() % 3) + 1;
 	
 	//Mask Forward->left->right
@@ -286,6 +273,13 @@ void AGenerationEngine::SpawnValveInRoomCenter(FVector roomCenter, float roomRot
 	{
 		RoomSegments.push_back(ValveActor);
 	}
+}
+
+TArray<FVector> AGenerationEngine::GenerateVoronoi(TArray<FVector>& SegmentLocations, FBox& BoundingVolume)
+{
+
+
+	return TArray<FVector>();
 }
 
 void AGenerationEngine::LoadCoridor(TSubclassOf	<AActor> coridor)

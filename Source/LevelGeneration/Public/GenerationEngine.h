@@ -76,6 +76,7 @@ public:
 private:
 	void SpawnFirstCorridor();
 	void SpawnValveInRoomCenter(FVector roomCenter, float roomRotation);
+	TArray<FVector> GenerateVoronoi(TArray<FVector>& SegmentLocations, FBox& BoundingVolume);
 	std::vector<AActor*> RoomSegments;
 	std::vector<TSubclassOf	<AActor>> Coridors;
 	unsigned int DoorWeightSum;
