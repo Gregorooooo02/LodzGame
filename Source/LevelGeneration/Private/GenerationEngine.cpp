@@ -106,7 +106,7 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition, AActor* pre
 	}
 	
 	FBox RoomBoundingBox(BoundingPoints);
-	TArray<FVector> voronoiPoints = GenerateVoronoi(SitesPoints, RoomBoundingBox);
+	GenerateBoxIslands(SitesPoints, RoomBoundingBox);
 	
 	int32 doorCount = (FMath::Rand() % 3) + 1;
 	
@@ -275,11 +275,11 @@ void AGenerationEngine::SpawnValveInRoomCenter(FVector roomCenter, float roomRot
 	}
 }
 
-TArray<FVector> AGenerationEngine::GenerateVoronoi(TArray<FVector>& SegmentLocations, FBox& BoundingVolume)
+void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations, FBox& BoundingVolume)
 {
 
 
-	return TArray<FVector>();
+	return;
 }
 
 void AGenerationEngine::LoadCoridor(TSubclassOf	<AActor> coridor)

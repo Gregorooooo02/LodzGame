@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include <vector>
+#include "BaseBox.h"
 #include "GenerationEngine.generated.h"
 
 
@@ -64,6 +65,14 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		float segmentDeletionChance = 10.0f;
 
+	UPROPERTY(EditDefaultsOnly)
+		float maxVoronoiOffset = 350.0f;
+	UPROPERTY(EditDefaultsOnly)
+		float boxIslandDensity = 0.9f;
+
+	UPROPERTY(EditDefaultsOnly)
+		TArray<TSubclassOf<ABaseBox>> Boxes;
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -76,7 +85,7 @@ public:
 private:
 	void SpawnFirstCorridor();
 	void SpawnValveInRoomCenter(FVector roomCenter, float roomRotation);
-	TArray<FVector> GenerateVoronoi(TArray<FVector>& SegmentLocations, FBox& BoundingVolume);
+	void GenerateBoxIslands(TArray<FVector>& SegmentLocations, FBox& BoundingVolume);
 	std::vector<AActor*> RoomSegments;
 	std::vector<TSubclassOf	<AActor>> Coridors;
 	unsigned int DoorWeightSum;
