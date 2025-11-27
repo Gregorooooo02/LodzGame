@@ -62,6 +62,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Valve")
 	bool CanInteract() const { return !bIsInteracting && !bValveDetached; }
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valve Settings")
+	bool bValveDetached = false;
+	
 protected:
 	// Internal functions
 	void RotateValve(float MouseDeltaX, float MouseDeltaY);
@@ -70,7 +73,6 @@ protected:
 
 private:
 	bool bIsInteracting = false;
-	bool bValveDetached = false;
 	float CurrentRotation = 0.0f;
 	FVector2D LastMousePosition;
 	FVector2D ScreenCenter;
