@@ -71,6 +71,12 @@ public:
 		float boxIslandDensity = 0.9f;
 
 	UPROPERTY(EditDefaultsOnly)
+		uint32 minBoxCount = 3;
+
+	UPROPERTY(EditDefaultsOnly)
+		uint32 maxBoxCount = 5;
+
+	UPROPERTY(EditDefaultsOnly)
 		TArray<TSubclassOf<ABaseBox>> Boxes;
 
 
@@ -89,5 +95,6 @@ private:
 	std::vector<AActor*> RoomSegments;
 	std::vector<TSubclassOf	<AActor>> Coridors;
 	unsigned int DoorWeightSum;
+	bool FindThirdVertex(const FVector& firstVertex, const FVector& secondVertex, float radius1, float radius2, float radius3, FVector& resultVertex1, FVector& resultVertex2);
 
 };
