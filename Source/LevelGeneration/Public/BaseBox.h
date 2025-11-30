@@ -15,7 +15,7 @@ public:
 	// Sets default values for this actor's properties
 	ABaseBox();
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 		float boxSize = 80.0f;
 
 
