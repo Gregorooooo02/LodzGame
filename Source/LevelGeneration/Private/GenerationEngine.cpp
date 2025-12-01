@@ -277,9 +277,9 @@ void AGenerationEngine::SpawnValveInRoomCenter(FVector roomCenter, float roomRot
 
 void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations, FBox& BoundingVolume)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Print On Tick"));
+	UE_LOG(LogTemp, Warning, TEXT("Print On Tick"));
 	FActorSpawnParameters BoxParams;
-	BoxParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+	BoxParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	for (int i = 0; i < SegmentLocations.Num(); i++) {
 		FVector2D offset = FMath::RandPointInCircle(maxVoronoiOffset);
@@ -294,7 +294,7 @@ void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations, FB
 		std::vector<FVector> spawnedBoxPositions;
 
 		TSubclassOf<ABaseBox> firstBox = Boxes[FMath::Rand()%boxVariantCount];
-		AActor* firstBoxPtr = GetWorld()->SpawnActor<AActor>(Boxes[0], SegmentLocations[i], FRotator(0, 0, 0), BoxParams);
+		AActor* firstBoxPtr = GetWorld()->SpawnActor<AActor>(firstBox, SegmentLocations[i], FRotator(0, 0, FMath::RandRange(0.0, 360.0)), BoxParams);
 		float radiusCenter = firstBox->GetDefaultObject<ABaseBox>()->boxSize;
 		RoomSegments.push_back(firstBoxPtr);
 		spawnedBoxPositions.push_back(SegmentLocations[i]);
@@ -303,7 +303,7 @@ void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations, FB
 
 		TSubclassOf<ABaseBox> secondBox = Boxes[FMath::Rand() % boxVariantCount];
 		float radiusSecond = secondBox->GetDefaultObject<ABaseBox>()->boxSize;
-		AActor* previousBox = GetWorld()->SpawnActor<AActor>(secondBox, SegmentLocations[i] + FVector(radiusCenter + radiusSecond, 0, 0), FRotator(0, 0, 0), BoxParams);
+		AActor* previousBox = GetWorld()->SpawnActor<AActor>(secondBox, SegmentLocations[i] + FVector(radiusCenter + radiusSecond, 0, 0), FRotator(0, 0, FMath::RandRange(0.0, 360.0)), BoxParams);
 		RoomSegments.push_back(previousBox);
 		spawnedBoxPositions.push_back(SegmentLocations[i] + FVector(radiusCenter + radiusSecond, 0, 0));
 		spawnedBoxRadii.push_back(radiusSecond);
@@ -330,11 +330,12 @@ void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations, FB
 				if (!first) {
 					for (int k = 0; k < spawnedBoxRadii.size(); k++) {
 						if (FVector::Dist(secondCandidate, spawnedBoxPositions[k]) < radiusThird + spawnedBoxRadii[k]) {
-							return;
+							UE_LOG(LogTemp, Warning, TEXT("Print On Tick"));
+							break;
 						}
 					}
 				}
-				RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(secondBox,first ? firstCandidate : secondCandidate , FRotator(0, 0, 0), BoxParams));
+				RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(secondBox,first ? firstCandidate : secondCandidate , FRotator(0, 0, FMath::RandRange(0.0, 360.0)), BoxParams));
 				spawnedBoxPositions.push_back(first ? firstCandidate : secondCandidate);
 				spawnedBoxRadii.push_back(radiusThird);
 			}
@@ -349,29 +350,44 @@ void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations, FB
 
 bool AGenerationEngine::FindThirdVertex(const FVector& firstVertex, const FVector& secondVertex, float radius1, float radius2, float radius3, FVector& resultVertex1, FVector& resultVertex2)
 {
-	float dx = secondVertex.X - firstVertex.X;
-	float dy = secondVertex.Y - firstVertex.Y;
+	//float dx = secondVertex.X - firstVertex.X;
+	//float dy = secondVertex.Y - firstVertex.Y;
 
-	float c = radius1 + radius2;
-	float b = radius1 + radius3;
-	float a = radius2 + radius3;
+	//float c = radius1 + radius2;
+	//float b = radius1 + radius3;
+	//float a = radius2 + radius3;
 
-	if (c == 0 || b + a <= c || b + c <= a || a + c <= b)
-		return false;
+	//if (c == 0 || b + a <= c || b + c <= a || a + c <= b)
+	//	return false;
 
-	float x = (b * b - a * a + c * c) / (2 * c);
-	float temp = b * b - x * x;
-	if (temp < 0) temp = 0;
-	float y = sqrtf(temp);
+	//float x = (b * b - a * a + c * c) / (2 * c);
+	//float temp = b * b - x * x;
+	//if (temp < 0) temp = 0;
+	//float y = sqrtf(temp);
 
-	float exx = dx / c;
-	float exy = dy / c;
+	//float exx = dx / c;
+	//float exy = dy / c;
 
-	float eyx = -exy;
-	float eyy = exx;
+	//float eyx = -exy;
+	//float eyy = exx;
 
-	resultVertex1 = FVector(firstVertex.X + x * exx + y * eyx, firstVertex.Y + x * exy + y * eyy, firstVertex.Z);
-	resultVertex2 = FVector(firstVertex.X + x * exx - y * eyx, firstVertex.Y + x * exy - y * eyy, firstVertex.Z);
+	//resultVertex1 = FVector(firstVertex.X + x * exx + y * eyx, firstVertex.Y + x * exy + y * eyy, firstVertex.Z);
+	//resultVertex2 = FVector(firstVertex.X + x * exx - y * eyx, firstVertex.Y + x * exy - y * eyy, firstVertex.Z);
+
+	float d2 = radius1 + radius2;
+	float d3 = radius1 + radius3;
+	float d1 = radius2 + radius3;
+
+	float k = (d2 * d2 + d1 *d1 - d3 *d3) / (2 * d2);
+	float h = sqrt(d1 * d1 - k  * k);
+
+	resultVertex1.X = secondVertex.X + (k / d2) * (firstVertex.X - secondVertex.X) - (h / d2) * (firstVertex.Y - secondVertex.Y);
+	resultVertex1.Y = secondVertex.Y + (k / d2) * (firstVertex.Y - secondVertex.Y) + (h / d2) * (firstVertex.X - secondVertex.X);
+	resultVertex1.Z = 5.0f;
+
+	resultVertex2.X= secondVertex.X + (k / d2) * (firstVertex.X - secondVertex.X) + (h / d2) * (firstVertex.Y - secondVertex.Y);
+	resultVertex2.Y = secondVertex.Y + (k / d2) * (firstVertex.Y - secondVertex.Y) - (h / d2) * (firstVertex.X - secondVertex.X);
+	resultVertex2.Z = 5.0f;
 
 	return true;
 }
