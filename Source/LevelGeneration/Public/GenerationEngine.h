@@ -68,7 +68,7 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		float maxVoronoiOffset = 350.0f;
 	UPROPERTY(EditDefaultsOnly)
-		float boxIslandDensity = 0.9f;
+		float maxBoxIslandSize = 300.0f;
 
 	UPROPERTY(EditDefaultsOnly)
 		uint32 minBoxCount = 3;
@@ -77,7 +77,19 @@ public:
 		uint32 maxBoxCount = 5;
 
 	UPROPERTY(EditDefaultsOnly)
+		uint32 maxBoxSpawnAttemps = 5;
+
+	UPROPERTY(EditDefaultsOnly)
 		TArray<TSubclassOf<ABaseBox>> Boxes;
+
+	UPROPERTY(EditDefaultsOnly)
+		float maxBoxIslandStartSize = 100.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+		float boxIslandSizeIncrement = 100.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+		float valveOffsetPart = 0.1f;
 
 
 protected:
@@ -90,8 +102,8 @@ public:
 
 private:
 	void SpawnFirstCorridor();
-	void SpawnValveInRoomCenter(FVector roomCenter, float roomRotation);
-	void GenerateBoxIslands(TArray<FVector>& SegmentLocations, FBox& BoundingVolume);
+	void SpawnValve(const FVector &segmentLocation, const FVector& parallelOffset, const FVector& perpendicularOffset, float roomRotation);
+	void GenerateBoxIslands(TArray<FVector>& SegmentLocations);
 	std::vector<AActor*> RoomSegments;
 	std::vector<TSubclassOf	<AActor>> Coridors;
 	unsigned int DoorWeightSum;
