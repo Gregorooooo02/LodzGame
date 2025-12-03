@@ -253,9 +253,7 @@ void AGenerationEngine::SpawnValve(const FVector& segmentLocation, const FVector
 	if (!BP_Valve)
 		return;
 
-	//TODO: Make valves not spawn in outer walls
-
-	int xyRand = FMath::Rand() % 8;
+	int xyRand = FMath::Rand() % 4;
 
 	FVector valveFinalOffset;
 	float finalRotation;
@@ -263,43 +261,27 @@ void AGenerationEngine::SpawnValve(const FVector& segmentLocation, const FVector
 	switch (xyRand)
 	{
 	case 0: {
-		valveFinalOffset = 0.5f * perpendicularOffset + (0.5f - valveOffsetPart) * parallelOffset;
-		finalRotation = roomRotation - 180.0f;
+		valveFinalOffset = 0.5f * perpendicularOffset + 0.5f * parallelOffset;
+		valveFinalOffset -= valveFinalOffset * valveOffsetPart;
+		finalRotation = roomRotation - 135.0f;
 		break;
 	}
 	case 1: {
-		valveFinalOffset = -0.5f * perpendicularOffset + (0.5f - valveOffsetPart) * parallelOffset;
-		finalRotation = roomRotation - 180.0f;
+		valveFinalOffset = 0.5f * perpendicularOffset -0.5f * parallelOffset;
+		valveFinalOffset -= valveFinalOffset * valveOffsetPart;
+		finalRotation = roomRotation - 45.0f;
 		break;
 	}
 	case 2: {
-		valveFinalOffset = 0.5f * perpendicularOffset + (-0.5f + valveOffsetPart) * parallelOffset;
-		finalRotation = roomRotation;
+		valveFinalOffset = -0.5f * perpendicularOffset + 0.5f * parallelOffset;
+		valveFinalOffset -= valveFinalOffset * valveOffsetPart;
+		finalRotation = roomRotation + 135.0f;
 		break;
 	}
 	case 3: {
-		valveFinalOffset = -0.5f * perpendicularOffset + (-0.5f + valveOffsetPart) * parallelOffset;
-		finalRotation = roomRotation;
-		break;
-	}
-	case 4: {
-		valveFinalOffset = 0.5f * parallelOffset + (0.5f - valveOffsetPart) * perpendicularOffset;
-		finalRotation = roomRotation - 90.0f;
-		break;
-	}
-	case 5: {
-		valveFinalOffset = -0.5f * parallelOffset + (0.5f - valveOffsetPart) * perpendicularOffset;
-		finalRotation = roomRotation - 90.0f;
-		break;
-	}
-	case 6: {
-		valveFinalOffset = 0.5f * parallelOffset + (-0.5f + valveOffsetPart) * perpendicularOffset;
-		finalRotation = roomRotation + 90.0f;
-		break;
-	}
-	case 7: {
-		valveFinalOffset = -0.5f * parallelOffset + (-0.5f + valveOffsetPart) * perpendicularOffset;
-		finalRotation = roomRotation + 90.0f;
+		valveFinalOffset = -0.5f * perpendicularOffset -0.5f * parallelOffset;
+		valveFinalOffset -= valveFinalOffset * valveOffsetPart;
+		finalRotation = roomRotation + 45.0f;
 		break;
 	}
 	default:
@@ -319,147 +301,7 @@ void AGenerationEngine::SpawnValve(const FVector& segmentLocation, const FVector
 		RoomSegments.push_back(ValveActor);
 	}
 }
-/*
-void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations, FBox& BoundingVolume)
-{
-	FActorSpawnParameters BoxParams;
-	BoxParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	for (int i = 0; i < SegmentLocations.Num(); i++) {
-		FVector2D offset = FMath::RandPointInCircle(maxVoronoiOffset);
-		SegmentLocations[i].X += offset.X;
-		SegmentLocations[i].Y += offset.Y;
-		SegmentLocations[i] += FVector(0, 0, 50);
-	}
-	int boxVariantCount = Boxes.Num();
-	for (int i = 0; i < SegmentLocations.Num(); i++) {
-		int boxCount = (FMath::Rand() % (maxBoxCount - minBoxCount)) + minBoxCount;
-		std::vector<float> spawnedBoxRadii;
-		std::vector<FVector> spawnedBoxPositions;
-
-		TSubclassOf<ABaseBox> firstBox = Boxes[FMath::Rand()%boxVariantCount];
-		AActor* firstBoxPtr = GetWorld()->SpawnActor<AActor>(firstBox, SegmentLocations[i], FRotator(0, 0, FMath::RandRange(0.0, 360.0)), BoxParams);
-		float radiusCenter = firstBox->GetDefaultObject<ABaseBox>()->boxSize;
-		RoomSegments.push_back(firstBoxPtr);
-		spawnedBoxPositions.push_back(SegmentLocations[i]);
-		spawnedBoxRadii.push_back(radiusCenter);
-		
-
-		TSubclassOf<ABaseBox> secondBox = Boxes[FMath::Rand() % boxVariantCount];
-		float radiusSecond = secondBox->GetDefaultObject<ABaseBox>()->boxSize;
-		AActor* previousBox = GetWorld()->SpawnActor<AActor>(secondBox, SegmentLocations[i] + FVector(radiusCenter + radiusSecond, 0, 0), FRotator(0, 0, FMath::RandRange(0.0, 360.0)), BoxParams);
-		RoomSegments.push_back(previousBox);
-		spawnedBoxPositions.push_back(SegmentLocations[i] + FVector(radiusCenter + radiusSecond, 0, 0));
-		spawnedBoxRadii.push_back(radiusSecond);
-
-
-
-		for (int j = 0; j < (boxCount - 2); j++) {
-			TSubclassOf<ABaseBox> thirdBox = Boxes[FMath::Rand() % boxVariantCount];
-			float radiusThird = thirdBox->GetDefaultObject<ABaseBox>()->boxSize;
-
-			FVector firstCandidate;
-			FVector secondCandidate;
-
-			if (FindThirdVertex(SegmentLocations[i], SegmentLocations[i] + FVector(radiusCenter + radiusSecond, 0, 0),
-				radiusCenter, radiusSecond, radiusThird, firstCandidate, secondCandidate)) {
-
-				bool first = true;
-				for (int k = 0; k < spawnedBoxRadii.size(); k++) {
-					if (FVector::Dist(firstCandidate, spawnedBoxPositions[k]) < radiusThird + spawnedBoxRadii[k]) {
-						first = false;
-						break;
-					}
-				}
-				if (!first) {
-					for (int k = 0; k < spawnedBoxRadii.size(); k++) {
-						if (FVector::Dist(secondCandidate, spawnedBoxPositions[k]) < radiusThird + spawnedBoxRadii[k]) {
-							UE_LOG(LogTemp, Warning, TEXT("Print On Tick"));
-							break;
-						}
-					}
-				}
-				RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(secondBox,first ? firstCandidate : secondCandidate , FRotator(0, 0, FMath::RandRange(0.0, 360.0)), BoxParams));
-				spawnedBoxPositions.push_back(first ? firstCandidate : secondCandidate);
-				spawnedBoxRadii.push_back(radiusThird);
-			}
-			else {
-				break;
-			}
-		}	
-	}
-	
-	return;
-}
-*/
-/*
-void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations, FBox& BoundingVolume)
-{
-	FActorSpawnParameters BoxParams;
-	BoxParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-	for (int i = 0; i < SegmentLocations.Num(); i++) {
-		FVector2D offset = FMath::RandPointInCircle(maxVoronoiOffset);
-		SegmentLocations[i].X += offset.X;
-		SegmentLocations[i].Y += offset.Y;
-		SegmentLocations[i] += FVector(0, 0, 50);
-	}
-	int boxVariantCount = Boxes.Num();
-	for (int i = 0; i < SegmentLocations.Num(); i++) {
-		int boxCount = (FMath::Rand() % (maxBoxCount - minBoxCount)) + minBoxCount;
-		std::vector<float> spawnedBoxRadii;
-		std::vector<FVector> spawnedBoxPositions;
-
-		TSubclassOf<ABaseBox> firstBox = Boxes[FMath::Rand() % boxVariantCount];
-		AActor* firstBoxPtr = GetWorld()->SpawnActor<AActor>(firstBox, SegmentLocations[i], FRotator(0, 0, FMath::RandRange(0.0, 360.0)), BoxParams);
-		float radiusCenter = firstBox->GetDefaultObject<ABaseBox>()->boxSize;
-		RoomSegments.push_back(firstBoxPtr);
-		spawnedBoxPositions.push_back(SegmentLocations[i]);
-		spawnedBoxRadii.push_back(radiusCenter);
-
-
-		TSubclassOf<ABaseBox> secondBox = Boxes[FMath::Rand() % boxVariantCount];
-		float radiusSecond = secondBox->GetDefaultObject<ABaseBox>()->boxSize;
-		AActor* previousBox = GetWorld()->SpawnActor<AActor>(secondBox, SegmentLocations[i] + FVector(radiusCenter + radiusSecond, 0, 0), FRotator(0, 0, FMath::RandRange(0.0, 360.0)), BoxParams);
-		RoomSegments.push_back(previousBox);
-		spawnedBoxPositions.push_back(SegmentLocations[i] + FVector(radiusCenter + radiusSecond, 0, 0));
-		spawnedBoxRadii.push_back(radiusSecond);
-
-		float maxDist = 0.0f;
-		float biggestRadius = 0.0f;
-
-		for (int j = 0; j < (boxCount - 2); j++) {
-			TSubclassOf<ABaseBox> thirdBox = Boxes[FMath::Rand() % boxVariantCount];
-			float radiusThird = thirdBox->GetDefaultObject<ABaseBox>()->boxSize;
-
-			biggestRadius = radiusThird > biggestRadius ? radiusThird : biggestRadius;
-
-			FVector firstCandidate;
-			FVector secondCandidate;
-
-			if (FindThirdVertex(SegmentLocations[i], SegmentLocations[i] + FVector(radiusCenter + radiusSecond, 0, 0),
-				radiusCenter + maxDist, radiusSecond + maxDist, radiusThird, firstCandidate, secondCandidate)) {
-				for (int k = 0; k < spawnedBoxRadii.size(); k++) {
-					if (FVector::Dist(firstCandidate, spawnedBoxPositions[k]) < radiusThird + spawnedBoxRadii[k]) {
-						firstCandidate.X += radiusThird;
-						maxDist += biggestRadius;
-						biggestRadius = 0.0f;
-						break;
-					}
-				}
-				RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(secondBox, firstCandidate, FRotator(0, 0, FMath::RandRange(0.0, 360.0)), BoxParams));
-				spawnedBoxPositions.push_back(firstCandidate);
-				spawnedBoxRadii.push_back(radiusThird);
-			}
-			else {
-				break;
-			}
-		}
-	}
-
-	return;
-}
-*/
 void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations)
 {
 	FActorSpawnParameters BoxParams;
