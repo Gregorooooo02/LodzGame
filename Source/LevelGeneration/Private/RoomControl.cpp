@@ -29,6 +29,6 @@ void ARoomControl::TriggerNextRoomSpawn(USceneComponent* exitPosition, AActor* c
 {
 	AGenerationEngine* engine = Cast<AGenerationEngine>(Owner);
 	if (engine != nullptr) {
-		engine->SpawnNextRoom(exitPosition,caller);
+		engine->SpawnNextRoomAsync(exitPosition,caller);
 	}
 }

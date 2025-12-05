@@ -9,6 +9,8 @@
 #include "GenerationEngine.generated.h"
 
 
+
+
 UCLASS()
 class LEVELGENERATION_API AGenerationEngine : public AActor
 {
@@ -20,6 +22,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Generation")
 		void SpawnNextRoom(USceneComponent* exitPosition,AActor* previousCoridor);
+
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+		void SpawnNextRoomAsync(USceneComponent* exitPosition, AActor* previousCoridor);
 
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 		void LoadCoridor(TSubclassOf<AActor> coridor);
@@ -91,6 +96,8 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		float valveOffsetPart = 0.1f;
 
+	UPROPERTY(EditDefaultsOnly)
+		double spawningTimeBudget = 0.015;
 
 protected:
 	// Called when the game starts or when spawned
@@ -109,4 +116,16 @@ private:
 	unsigned int DoorWeightSum;
 	bool FindThirdVertex(const FVector& firstVertex, const FVector& secondVertex, float radius1, float radius2, float radius3, FVector& resultVertex1, FVector& resultVertex2);
 
+	struct SpawnParams {
+		TSubclassOf	<AActor> ActorToSpawn;
+		FVector position;
+		FRotator rotation;
+		FActorSpawnParameters spawningParams;
+	};
+
+	TQueue<SpawnParams, EQueueMode::Mpsc> SpawnQueue;
+
+	AActor* previousCoridorPtr = nullptr;
+	bool spawningNewRoom = false;
+	bool deletePreviousRoom = true;
 };
