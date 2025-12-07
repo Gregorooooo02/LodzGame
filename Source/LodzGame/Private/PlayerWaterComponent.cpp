@@ -77,23 +77,30 @@ void UPlayerWaterComponent::UpdateMovementSpeed(float SubmersionLevel, float Del
 	if (!MovementComponent)
 		return;
 
-	// If not in water, don't modify speed
-	if (SubmersionLevel < 0.01f)
-	{
-		CurrentSpeedMultiplier = 1.0f;
-		return;
-	}
-	
+	// Determine base speed based on whether player is sprinting
 	float DesiredSpeed = IsSprinting ? SprintSpeed : WalkSpeed;
-	float MinMultiplier = IsSprinting ? MinSprintSpeedMultiplier : MinSpeedMultiplier;
-	
-	// Calculate target multiplier based on submersion
-	float TargetMultiplier = FMath::Lerp(1.0f, MinMultiplier, SubmersionLevel);
-	CurrentSpeedMultiplier = FMath::FInterpTo(CurrentSpeedMultiplier, TargetMultiplier, DeltaTime, TransitionSpeed);
 
-	DesiredSpeed *= CurrentSpeedMultiplier;
-	
+	// If in water, apply slowdown
+	if (SubmersionLevel >= 0.01f)
+	{
+		float MinMultiplier = IsSprinting ? MinSprintSpeedMultiplier : MinSpeedMultiplier;
+
+		// Calculate target multiplier based on submersion
+		float TargetMultiplier = FMath::Lerp(1.0f, MinMultiplier, SubmersionLevel);
+		CurrentSpeedMultiplier = FMath::FInterpTo(CurrentSpeedMultiplier, TargetMultiplier, DeltaTime, TransitionSpeed);
+
+		DesiredSpeed *= CurrentSpeedMultiplier;
+	}
+	else
+	{
+		// Not in water - reset multiplier to 1.0
+		CurrentSpeedMultiplier = FMath::FInterpTo(CurrentSpeedMultiplier, 1.0f, DeltaTime, TransitionSpeed);
+		DesiredSpeed *= CurrentSpeedMultiplier;
+	}
+
+	// Set both walk and swim speed to ensure proper behavior in both modes
 	MovementComponent->MaxWalkSpeed = DesiredSpeed;
+	MovementComponent->MaxSwimSpeed = DesiredSpeed;
 }
 
 float UPlayerWaterComponent::CalculateSubmersionLevel()
