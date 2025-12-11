@@ -106,6 +106,7 @@ private:
 	void GenerateBoxIslands(TArray<FVector>& SegmentLocations);
 	std::vector<AActor*> RoomSegments;
 	std::vector<TSubclassOf	<AActor>> Coridors;
+	void UpdateRecastNavMeshPosition(const FVector newCenter);
 	unsigned int DoorWeightSum;
 	bool FindThirdVertex(const FVector& firstVertex, const FVector& secondVertex, float radius1, float radius2, float radius3, FVector& resultVertex1, FVector& resultVertex2);
 

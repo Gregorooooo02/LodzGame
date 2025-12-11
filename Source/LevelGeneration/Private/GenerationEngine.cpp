@@ -1,6 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GenerationEngine.h"
+#include <UMG.h>
+#include <NavigationSystem.h>
+#include "NavMesh/RecastNavMesh.h"
+#include "NavMesh/NavMeshBoundsVolume.h"
+
 
 // Sets default values
 AGenerationEngine::AGenerationEngine()
@@ -243,8 +248,12 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition, AActor* pre
 		RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(ExternalWall, startWallPos - i * parallelOffset, FRotator(0, rotation + 90, 0), params));
 	}
 
+	//Update NavMesh position
+	FVector roomCenter = currentPoint + ((dimX - 1) * 0.5f * parallelOffset) + ((dimY - 1) * 0.5f * perpendicularOffset);
+	UpdateRecastNavMeshPosition(roomCenter);
+
 	// TEMPORARY: Spawn valve in room center
-	//FVector roomCenter = currentPoint + ((dimX - 1) * 0.5f * parallelOffset) + ((dimY - 1) * 0.5f * perpendicularOffset);
+	// FVector roomCenter = currentPoint + ((dimX - 1) * 0.5f * parallelOffset) + ((dimY - 1) * 0.5f * perpendicularOffset);
 	//SpawnValveInRoomCenter(roomCenter, rotation);
 }
 
@@ -560,6 +569,18 @@ bool AGenerationEngine::FindThirdVertex(const FVector& firstVertex, const FVecto
 void AGenerationEngine::LoadCoridor(TSubclassOf	<AActor> coridor)
 {
 	Coridors.push_back(coridor);
+}
+
+void AGenerationEngine::UpdateRecastNavMeshPosition(const FVector newCenter)
+{
+	UE_LOG(LogTemp, Warning, TEXT("WESZLEM"));
+
+	ANavMeshBoundsVolume* navMesh = Cast<ANavMeshBoundsVolume>(UGameplayStatics::GetActorOfClass(GetWorld(), ANavMeshBoundsVolume::StaticClass()));
+	navMesh->SetActorLocation(newCenter);
+
+	UNavigationSystemV1* navSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	navSystem->OnNavigationBoundsUpdated(navMesh);
+	UE_LOG(LogTemp, Warning, TEXT("Wyszlem"));
 }
 
 
