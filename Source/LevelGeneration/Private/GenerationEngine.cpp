@@ -276,14 +276,14 @@ void AGenerationEngine::SpawnNextRoom(USceneComponent* exitPosition, AActor* pre
 	//SpawnValveInRoomCenter(roomCenter, rotation);
 }
 
-void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor* previousCoridor)
+void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor* previousCoridor, float waterLevel)
 {
 	double rotation = exitPosition->GetComponentRotation().Yaw; 
 	FVector startingPoint = exitPosition->GetComponentLocation();
 	previousCoridorPtr = previousCoridor;
 	spawningNewRoom = true;
 
-	Async(EAsyncExecution::ThreadPool, [this,rotation, startingPoint]()
+	Async(EAsyncExecution::ThreadPool, [this,rotation, startingPoint,waterLevel]()
 	{
 		TArray<SpawnParams> LocalParams;
 		FActorSpawnParameters params;
@@ -388,12 +388,13 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 		{
 			FActorSpawnParameters BoxParams;
 			BoxParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+			FVector verticalOffset(0,0,waterLevel + 20.0f);
 
 			for (int i = 0; i < SitesPoints.Num(); i++) {
 				FVector2D voronoiOffset = FMath::RandPointInCircle(maxVoronoiOffset);
 				SitesPoints[i].X += voronoiOffset.X;
 				SitesPoints[i].Y += voronoiOffset.Y;
-				SitesPoints[i] += FVector(0, 0, 50);
+				//SitesPoints[i] += FVector(0, 0, 50);
 			}
 			int boxVariantCount = Boxes.Num();
 			for (int i = 0; i < SitesPoints.Num(); i++) {
@@ -402,7 +403,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				std::vector<FVector> spawnedBoxPositions;
 
 				TSubclassOf<ABaseBox> firstBox = Boxes[FMath::Rand() % boxVariantCount];
-				LocalParams.Emplace(firstBox, SitesPoints[i], FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
+				LocalParams.Emplace(firstBox, SitesPoints[i] + verticalOffset, FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
 				//AActor* firstBoxPtr = GetWorld()->SpawnActor<AActor>(firstBox, SitesPoints[i], FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
 				//RoomSegments.push_back(firstBoxPtr);
 				float radiusCenter = firstBox->GetDefaultObject<ABaseBox>()->boxSize;
@@ -427,7 +428,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 						if (isGood) {
 							//AActor* newBoxPtr = GetWorld()->SpawnActor<AActor>(thirdBox, newPosition, FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
 							//RoomSegments.push_back(newBoxPtr);
-							LocalParams.Emplace(thirdBox, newPosition, FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
+							LocalParams.Emplace(thirdBox, newPosition + verticalOffset, FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
 							spawnedBoxPositions.push_back(newPosition);
 							spawnedBoxRadii.push_back(radiusThird);
 						}

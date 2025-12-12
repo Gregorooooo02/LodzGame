@@ -24,7 +24,7 @@ public:
 		void SpawnNextRoom(USceneComponent* exitPosition,AActor* previousCoridor);
 
 	UFUNCTION(BlueprintCallable, Category = "Generation")
-		void SpawnNextRoomAsync(USceneComponent* exitPosition, AActor* previousCoridor);
+		void SpawnNextRoomAsync(USceneComponent* exitPosition, AActor* previousCoridor,float waterLevel);
 
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 		void LoadCoridor(TSubclassOf<AActor> coridor);
@@ -128,4 +128,5 @@ private:
 	AActor* previousCoridorPtr = nullptr;
 	bool spawningNewRoom = false;
 	bool deletePreviousRoom = true;
+
 };
