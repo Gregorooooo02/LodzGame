@@ -388,7 +388,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 		{
 			FActorSpawnParameters BoxParams;
 			BoxParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-			FVector verticalOffset(0,0,waterLevel + 20.0f);
+			FVector verticalOffset(0,0,waterLevel);
 
 			for (int i = 0; i < SitesPoints.Num(); i++) {
 				FVector2D voronoiOffset = FMath::RandPointInCircle(maxVoronoiOffset);
@@ -470,6 +470,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 			}
 
 			int doorIndices[3] = { -1,-1,-1 };
+			int maxRooms = doorCount - 1;
 
 			//forward
 			if ((exitMask & 1) > 0) {
@@ -481,9 +482,19 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				doorIndices[0] = doorPosIndex;
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation, 0), params));
 				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation, 0), params);
-				int coridorIndex = FMath::Rand() % Coridors.size();
+				
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation, 0), Coridorparams));
-				LocalParams.Emplace(Coridors[coridorIndex], exitPos, FRotator(0, rotation, 0), Coridorparams);
+				int32 optionalRoomRoll = (FMath::Rand() % 100);
+				if (optionalRoomRoll > optionalRoomSpawnChance && maxRooms > 0) {
+					int roomIndex = FMath::Rand() % OptionalRooms.Num();
+					LocalParams.Emplace(OptionalRooms[roomIndex], exitPos, FRotator(0, rotation, 0), Coridorparams);
+					maxRooms--;
+				}
+				else {
+					int coridorIndex = FMath::Rand() % Coridors.size();
+					LocalParams.Emplace(Coridors[coridorIndex], exitPos, FRotator(0, rotation, 0), Coridorparams);
+				}
+				
 			}
 
 			//left
@@ -495,9 +506,17 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				doorIndices[1] = doorPosIndex;
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation + 90, 0), params));
 				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation + 90, 0), params);
-				int coridorIndex = FMath::Rand() % Coridors.size();
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams));
-				LocalParams.Emplace(Coridors[coridorIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams);
+				int32 optionalRoomRoll = (FMath::Rand() % 100);
+				if (optionalRoomRoll > optionalRoomSpawnChance && maxRooms > 0) {
+					int roomIndex = FMath::Rand() % OptionalRooms.Num();
+					LocalParams.Emplace(OptionalRooms[roomIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams);
+					maxRooms--;
+				}
+				else {
+					int coridorIndex = FMath::Rand() % Coridors.size();
+					LocalParams.Emplace(Coridors[coridorIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams);
+				}			
 			}
 
 			//right
@@ -509,9 +528,17 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				doorIndices[2] = doorPosIndex;
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation - 90, 0), params));
 				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation - 90, 0), params);
-				int coridorIndex = FMath::Rand() % Coridors.size();
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams));
-				LocalParams.Emplace(Coridors[coridorIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams);
+				int32 optionalRoomRoll = (FMath::Rand() % 100);
+				if (optionalRoomRoll > optionalRoomSpawnChance && maxRooms > 0) {
+					int roomIndex = FMath::Rand() % OptionalRooms.Num();
+					LocalParams.Emplace(OptionalRooms[roomIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams);
+					maxRooms--;
+				}
+				else {
+					int coridorIndex = FMath::Rand() % Coridors.size();
+					LocalParams.Emplace(Coridors[coridorIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams);
+				}
 			}
 		
 		

@@ -29,75 +29,78 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 		void LoadCoridor(TSubclassOf<AActor> coridor);
 
-	UPROPERTY(EditAnywhere)
-		TSubclassOf	<AActor> Corridor;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "General Parameters")
 		float PartSize = 1000.0f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Start Room")
 		TSubclassOf	<AActor> StartCorridor;
-
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Start Room")
 		FVector StartExitLocation;
-
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Start Room")
 		FRotator StartExitRotation;
-
-	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf	<AActor> RoomSegment;
-	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf	<AActor> Doorframe;
-	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf	<AActor> ExternalWall;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Start Room")
 		TSubclassOf	<AActor> StartingRoom;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly, Category = "General Parts")
+		TSubclassOf	<AActor> RoomSegment;
+	UPROPERTY(EditDefaultsOnly, Category = "General Parts")
+		TSubclassOf	<AActor> Doorframe;
+	UPROPERTY(EditDefaultsOnly, Category = "General Parts")
+		TSubclassOf	<AActor> ExternalWall;
+	UPROPERTY(EditAnywhere, Category = "General Parts")
 		TSubclassOf<AActor> BP_Valve;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		unsigned int minRoomDim = 3;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		unsigned int maxRoomDim = 7;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		unsigned int forwardDoorWeight = 1;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		unsigned int leftDoorWeight = 1;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		unsigned int rightDoorWeight = 1;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		float segmentDeletionChance = 10.0f;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
 		float maxVoronoiOffset = 350.0f;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
 		float maxBoxIslandSize = 300.0f;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
 		uint32 minBoxCount = 3;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
 		uint32 maxBoxCount = 5;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
 		uint32 maxBoxSpawnAttemps = 5;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
 		TArray<TSubclassOf<ABaseBox>> Boxes;
 
-	UPROPERTY(EditDefaultsOnly)
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
 		float maxBoxIslandStartSize = 100.0f;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
 		float boxIslandSizeIncrement = 100.0f;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		float valveOffsetPart = 0.1f;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		double spawningTimeBudget = 0.015;
+
+	UPROPERTY(EditDefaultsOnly, Category = "General Parts")
+		TArray<TSubclassOf<AActor>> OptionalRooms;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
+		float optionalRoomSpawnChance = 20.0f;
 
 protected:
 	// Called when the game starts or when spawned

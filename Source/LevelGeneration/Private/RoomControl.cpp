@@ -29,6 +29,7 @@ void ARoomControl::TriggerNextRoomSpawn(USceneComponent* exitPosition, AActor* c
 {
 	AGenerationEngine* engine = Cast<AGenerationEngine>(Owner);
 	if (engine != nullptr) {
+		waterLevel = waterLevel < 15.0f ? 15.0f : waterLevel;
 		engine->SpawnNextRoomAsync(exitPosition,caller,waterLevel);
 	}
 }
