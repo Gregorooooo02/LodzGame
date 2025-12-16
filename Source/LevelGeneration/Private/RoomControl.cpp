@@ -25,10 +25,11 @@ void ARoomControl::Tick(float DeltaTime)
 
 }
 
-void ARoomControl::TriggerNextRoomSpawn(USceneComponent* exitPosition, AActor* caller)
+void ARoomControl::TriggerNextRoomSpawn(USceneComponent* exitPosition, AActor* caller, float waterLevel)
 {
 	AGenerationEngine* engine = Cast<AGenerationEngine>(Owner);
 	if (engine != nullptr) {
-		engine->SpawnNextRoom(exitPosition,caller);
+		waterLevel = waterLevel < 15.0f ? 15.0f : waterLevel;
+		engine->SpawnNextRoomAsync(exitPosition,caller,waterLevel);
 	}
 }
