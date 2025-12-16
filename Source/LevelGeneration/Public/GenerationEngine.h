@@ -71,13 +71,13 @@ public:
 		float maxBoxIslandSize = 300.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
-		uint32 minBoxCount = 3;
+		uint32 minBoxCount = 1;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
-		uint32 maxBoxCount = 5;
+		uint32 maxBoxCount = 1;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
-		uint32 maxBoxSpawnAttemps = 5;
+		uint32 maxBoxSpawnAttemps = 3;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
 		TArray<TSubclassOf<ABaseBox>> Boxes;
@@ -85,10 +85,10 @@ public:
 
 
 	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
-		float maxBoxIslandStartSize = 100.0f;
+		float maxBoxIslandStartSize = 50.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
-		float boxIslandSizeIncrement = 100.0f;
+		float boxIslandSizeIncrement = 50.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		float valveOffsetPart = 0.1f;
