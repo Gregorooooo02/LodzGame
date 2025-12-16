@@ -6,8 +6,6 @@
 #include "Components/ActorComponent.h"
 #include "PlayerWaterComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSwimmingStateChanged);
-
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class LODZGAME_API UPlayerWaterComponent : public UActorComponent
 {
@@ -30,9 +28,6 @@ public:
 	float MinSprintSpeedMultiplier = 0.6f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Slowdown")
-	float MinJumpMultiplier = 0.5f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Slowdown")
 	float MinGravityMultiplier = 0.5f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Slowdown")
@@ -47,21 +42,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Slowdown")
 	bool IsSprinting = false;
 
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swimming")
-	float SwimmingThreshold = 0.7f;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Swimming")
-	bool bIsSwimming = false;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Swimming")
+	UPROPERTY(BlueprintReadOnly, Category = "Water Slowdown")
 	float CurrentSubmersionLevel = 0.0f;
-
-	UPROPERTY(BlueprintAssignable, Category = "Swimming")
-	FOnSwimmingStateChanged OnStartSwimming;
-
-	UPROPERTY(BlueprintAssignable, Category = "Swimming")
-	FOnSwimmingStateChanged OnStopSwimming;
 
 protected:
 	virtual void BeginPlay() override;
@@ -74,7 +56,6 @@ private:
 	
 	float LastDesiredSpeed = 230.0f;
 	float CurrentSpeedMultiplier = 1.0f;
-	float CurrentJumpMultiplier = 1.0f;
 	float CurrentGravityMultiplier = 1.0f;
 	
 	float CalculateSubmersionLevel();

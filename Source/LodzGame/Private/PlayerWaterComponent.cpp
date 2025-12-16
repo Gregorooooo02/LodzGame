@@ -28,9 +28,7 @@ void UPlayerWaterComponent::BeginPlay()
 		MovementComponent = Character->GetCharacterMovement();
 		if (MovementComponent)
 		{
-			DefaultJumpVelocity = MovementComponent->JumpZVelocity;
 			DefaultGravityScale = MovementComponent->GravityScale;
-			LastDesiredSpeed = WalkSpeed;
 		}
 	}
 
@@ -59,17 +57,13 @@ void UPlayerWaterComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	float SubmersionLevel = CalculateSubmersionLevel();
 	CurrentSubmersionLevel = SubmersionLevel;
 	
-	float TargetJumpMultiplier = FMath::Lerp(1.0f, MinJumpMultiplier, SubmersionLevel);
 	float TargetGravityMultiplier = FMath::Lerp(1.0f, MinGravityMultiplier, SubmersionLevel);
 	
-	CurrentJumpMultiplier = FMath::FInterpTo(CurrentJumpMultiplier, TargetJumpMultiplier, DeltaTime, TransitionSpeed);
 	CurrentGravityMultiplier = FMath::FInterpTo(CurrentGravityMultiplier, TargetGravityMultiplier, DeltaTime, TransitionSpeed);
 	
-	MovementComponent->JumpZVelocity = DefaultJumpVelocity * CurrentJumpMultiplier;
 	MovementComponent->GravityScale = DefaultGravityScale * CurrentGravityMultiplier;
 
 	UpdateMovementSpeed(SubmersionLevel, DeltaTime);
-	UpdateSwimmingState(SubmersionLevel);
 }
 
 void UPlayerWaterComponent::UpdateMovementSpeed(float SubmersionLevel, float DeltaTime)
@@ -123,32 +117,3 @@ float UPlayerWaterComponent::CalculateSubmersionLevel()
 	
 	return SubmersionLevel;
 }
-
-void UPlayerWaterComponent::UpdateSwimmingState(float SubmersionLevel)
-{
-	bool bShouldBeSwimming = SubmersionLevel >= SwimmingThreshold;
-	
-	if (bShouldBeSwimming && !bIsSwimming)
-	{
-		bIsSwimming = true;
-		
-		if (MovementComponent)
-		{
-			MovementComponent->SetMovementMode(MOVE_Swimming);
-		}
-		
-		OnStartSwimming.Broadcast();
-	}
-	else if (!bShouldBeSwimming && bIsSwimming)
-	{
-		bIsSwimming = false;
-		
-		if (MovementComponent)
-		{
-			MovementComponent->SetMovementMode(MOVE_Walking);
-		}
-		
-		OnStopSwimming.Broadcast();
-	}
-}
-
