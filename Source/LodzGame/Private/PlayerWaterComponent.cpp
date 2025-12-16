@@ -28,21 +28,21 @@ void UPlayerWaterComponent::BeginPlay()
 		MovementComponent = Character->GetCharacterMovement();
 		if (MovementComponent)
 		{
-			DefaultWalkSpeed = MovementComponent->MaxWalkSpeed;
 			DefaultJumpVelocity = MovementComponent->JumpZVelocity;
 			DefaultGravityScale = MovementComponent->GravityScale;
+			LastDesiredSpeed = WalkSpeed;
 		}
 	}
 
 	// Auto-find WaterLevelManager if not assigned
-	if (!WaterLevelManager)
+	if (!WaterManager)
 	{
 		TArray<AActor*> FoundActors;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWaterLevelManager::StaticClass(), FoundActors);
 		
 		if (FoundActors.Num() > 0)
 		{
-			WaterLevelManager = Cast<AWaterLevelManager>(FoundActors[0]);
+			WaterManager = Cast<AWaterLevelManager>(FoundActors[0]);
 		}
 	}
 }
@@ -53,30 +53,59 @@ void UPlayerWaterComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!MovementComponent || !WaterLevelManager)
+	if (!MovementComponent || !WaterManager)
 		return;
 
 	float SubmersionLevel = CalculateSubmersionLevel();
+	CurrentSubmersionLevel = SubmersionLevel;
 	
-	// Calculate target multipliers based on submersion
-	float TargetSpeedMultiplier = FMath::Lerp(1.0f, MinSpeedMultiplier, SubmersionLevel);
 	float TargetJumpMultiplier = FMath::Lerp(1.0f, MinJumpMultiplier, SubmersionLevel);
 	float TargetGravityMultiplier = FMath::Lerp(1.0f, MinGravityMultiplier, SubmersionLevel);
 	
-	// Smooth transition
-	CurrentSpeedMultiplier = FMath::FInterpTo(CurrentSpeedMultiplier, TargetSpeedMultiplier, DeltaTime, TransitionSpeed);
 	CurrentJumpMultiplier = FMath::FInterpTo(CurrentJumpMultiplier, TargetJumpMultiplier, DeltaTime, TransitionSpeed);
 	CurrentGravityMultiplier = FMath::FInterpTo(CurrentGravityMultiplier, TargetGravityMultiplier, DeltaTime, TransitionSpeed);
 	
-	// Apply to movement component
-	MovementComponent->MaxWalkSpeed = DefaultWalkSpeed * CurrentSpeedMultiplier;
 	MovementComponent->JumpZVelocity = DefaultJumpVelocity * CurrentJumpMultiplier;
 	MovementComponent->GravityScale = DefaultGravityScale * CurrentGravityMultiplier;
+
+	UpdateMovementSpeed(SubmersionLevel, DeltaTime);
+	UpdateSwimmingState(SubmersionLevel);
+}
+
+void UPlayerWaterComponent::UpdateMovementSpeed(float SubmersionLevel, float DeltaTime)
+{
+	if (!MovementComponent)
+		return;
+
+	// Determine base speed based on whether player is sprinting
+	float DesiredSpeed = IsSprinting ? SprintSpeed : WalkSpeed;
+
+	// If in water, apply slowdown
+	if (SubmersionLevel >= 0.01f)
+	{
+		float MinMultiplier = IsSprinting ? MinSprintSpeedMultiplier : MinSpeedMultiplier;
+
+		// Calculate target multiplier based on submersion
+		float TargetMultiplier = FMath::Lerp(1.0f, MinMultiplier, SubmersionLevel);
+		CurrentSpeedMultiplier = FMath::FInterpTo(CurrentSpeedMultiplier, TargetMultiplier, DeltaTime, TransitionSpeed);
+
+		DesiredSpeed *= CurrentSpeedMultiplier;
+	}
+	else
+	{
+		// Not in water - reset multiplier to 1.0
+		CurrentSpeedMultiplier = FMath::FInterpTo(CurrentSpeedMultiplier, 1.0f, DeltaTime, TransitionSpeed);
+		DesiredSpeed *= CurrentSpeedMultiplier;
+	}
+
+	// Set both walk and swim speed to ensure proper behavior in both modes
+	MovementComponent->MaxWalkSpeed = DesiredSpeed;
+	MovementComponent->MaxSwimSpeed = DesiredSpeed;
 }
 
 float UPlayerWaterComponent::CalculateSubmersionLevel()
 {
-	if (!WaterLevelManager)
+	if (!WaterManager)
 		return 0.0f;
 	
 	AActor* Owner = GetOwner();
@@ -84,7 +113,7 @@ float UPlayerWaterComponent::CalculateSubmersionLevel()
 		return 0.0f;
 	
 	float CharacterZ = Owner->GetActorLocation().Z;
-	float WaterZ = WaterLevelManager->WaterLevel;
+	float WaterZ = WaterManager->WaterLevel;
 	
 	// Calculate depth in water (0 = feet at water surface, CharacterHeight = fully submerged)
 	float DepthInWater = WaterZ - (CharacterZ - CharacterHeight * 0.5f);
@@ -93,5 +122,33 @@ float UPlayerWaterComponent::CalculateSubmersionLevel()
 	float SubmersionLevel = FMath::Clamp(DepthInWater / CharacterHeight, 0.0f, 1.0f);
 	
 	return SubmersionLevel;
+}
+
+void UPlayerWaterComponent::UpdateSwimmingState(float SubmersionLevel)
+{
+	bool bShouldBeSwimming = SubmersionLevel >= SwimmingThreshold;
+	
+	if (bShouldBeSwimming && !bIsSwimming)
+	{
+		bIsSwimming = true;
+		
+		if (MovementComponent)
+		{
+			MovementComponent->SetMovementMode(MOVE_Swimming);
+		}
+		
+		OnStartSwimming.Broadcast();
+	}
+	else if (!bShouldBeSwimming && bIsSwimming)
+	{
+		bIsSwimming = false;
+		
+		if (MovementComponent)
+		{
+			MovementComponent->SetMovementMode(MOVE_Walking);
+		}
+		
+		OnStopSwimming.Broadcast();
+	}
 }
 
