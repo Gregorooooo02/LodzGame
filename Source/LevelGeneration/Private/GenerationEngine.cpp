@@ -291,6 +291,19 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 	FVector startingPoint = exitPosition->GetComponentLocation();
 	previousCoridorPtr = previousCoridor;
 	spawningNewRoom = true;
+	if (currentRoomID == roomLimit) {
+
+		//finalRoom
+		SpawnParams params;
+		params.ActorToSpawn = finalRoom;
+		params.position = startingPoint;
+		params.rotation = FRotator(0, rotation, 0);
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		params.spawningParams = SpawnParams;
+		SpawnQueue.Enqueue(params);
+		return;
+	}
 
 	Async(EAsyncExecution::ThreadPool, [this,rotation, startingPoint,waterLevel]()
 	{
@@ -640,7 +653,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 
 
 		}
-
+		++currentRoomID;
 		for (const SpawnParams& Inst : LocalParams)
 		{
 			SpawnQueue.Enqueue(Inst);

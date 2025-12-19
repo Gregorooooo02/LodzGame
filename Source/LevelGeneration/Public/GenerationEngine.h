@@ -102,6 +102,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		float optionalRoomSpawnChance = 20.0f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
+		uint32 roomLimit = 6;
+
+	UPROPERTY(EditAnywhere)
+		uint32 currentRoomID = 0;
+
+	UPROPERTY(EditAnywhere, Category = "General Parts")
+		TSubclassOf<AActor> finalRoom;
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
