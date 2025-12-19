@@ -105,10 +105,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		uint32 roomLimit = 6;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Generation Parameters")
+		uint32 valvesPerRoom = 1;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
+		double valveMinimumDistance = 500.0;
+
+	UPROPERTY(EditAnywhere, Category = "Readonly")
 		uint32 currentRoomID = 0;
 
-	UPROPERTY(EditAnywhere, Category = "General Parts")
+	UPROPERTY(EditDefaultsOnly, Category = "General Parts")
 		TSubclassOf<AActor> finalRoom;
 
 
