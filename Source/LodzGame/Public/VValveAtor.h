@@ -64,6 +64,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valve Settings")
 	bool bValveDetached = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float CurrentRotation = 0.0f;
 	
 protected:
 	// Internal functions
@@ -73,7 +76,7 @@ protected:
 
 private:
 	bool bIsInteracting = false;
-	float CurrentRotation = 0.0f;
+
 	FVector2D LastMousePosition;
 	FVector2D ScreenCenter;
 	

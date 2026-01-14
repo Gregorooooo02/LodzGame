@@ -291,6 +291,19 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 	FVector startingPoint = exitPosition->GetComponentLocation();
 	previousCoridorPtr = previousCoridor;
 	spawningNewRoom = true;
+	if (currentRoomID == roomLimit) {
+
+		//finalRoom
+		SpawnParams params;
+		params.ActorToSpawn = finalRoom;
+		params.position = startingPoint;
+		params.rotation = FRotator(0, rotation, 0);
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		params.spawningParams = SpawnParams;
+		SpawnQueue.Enqueue(params);
+		return;
+	}
 
 	Async(EAsyncExecution::ThreadPool, [this,rotation, startingPoint,waterLevel]()
 	{
@@ -345,53 +358,68 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 			}
 		}
 
-		FVector randomSectorLocation = SitesPoints[FMath::Rand() % SitesPoints.Num()];
-
-		{
-			int xyRand = FMath::Rand() % 4;
-
-			FVector valveFinalOffset;
-			float finalRotation;
-
-			switch (xyRand)
+		TArray<FVector> previousValves;
+		for (uint32 i = 0; i < valvesPerRoom; i++) {
+			FVector randomSectorLocation = SitesPoints[FMath::Rand() % SitesPoints.Num()];
 			{
-			case 0: {
-				valveFinalOffset = 0.5f * perpendicularOffset + 0.5f * parallelOffset;
-				valveFinalOffset -= valveFinalOffset * valveOffsetPart;
-				finalRotation = rotation - 135.0f;
-				break;
-			}
-			case 1: {
-				valveFinalOffset = 0.5f * perpendicularOffset - 0.5f * parallelOffset;
-				valveFinalOffset -= valveFinalOffset * valveOffsetPart;
-				finalRotation = rotation - 45.0f;
-				break;
-			}
-			case 2: {
-				valveFinalOffset = -0.5f * perpendicularOffset + 0.5f * parallelOffset;
-				valveFinalOffset -= valveFinalOffset * valveOffsetPart;
-				finalRotation = rotation + 135.0f;
-				break;
-			}
-			case 3: {
-				valveFinalOffset = -0.5f * perpendicularOffset - 0.5f * parallelOffset;
-				valveFinalOffset -= valveFinalOffset * valveOffsetPart;
-				finalRotation = rotation + 45.0f;
-				break;
-			}
-			default:
-				break;
-			}
+				int xyRand = FMath::Rand() % 4;
 
-			valveFinalOffset = randomSectorLocation + valveFinalOffset + FVector(0, 0, 70);
+				FVector valveFinalOffset;
+				float finalRotation;
 
-			FActorSpawnParameters valveParams;
-			valveParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			valveParams.Owner = this;
+				switch (xyRand)
+				{
+				case 0: {
+					valveFinalOffset = 0.5f * perpendicularOffset + 0.5f * parallelOffset;
+					valveFinalOffset -= valveFinalOffset * valveOffsetPart;
+					finalRotation = rotation - 135.0f;
+					break;
+				}
+				case 1: {
+					valveFinalOffset = 0.5f * perpendicularOffset - 0.5f * parallelOffset;
+					valveFinalOffset -= valveFinalOffset * valveOffsetPart;
+					finalRotation = rotation - 45.0f;
+					break;
+				}
+				case 2: {
+					valveFinalOffset = -0.5f * perpendicularOffset + 0.5f * parallelOffset;
+					valveFinalOffset -= valveFinalOffset * valveOffsetPart;
+					finalRotation = rotation + 135.0f;
+					break;
+				}
+				case 3: {
+					valveFinalOffset = -0.5f * perpendicularOffset - 0.5f * parallelOffset;
+					valveFinalOffset -= valveFinalOffset * valveOffsetPart;
+					finalRotation = rotation + 45.0f;
+					break;
+				}
+				default:
+					break;
+				}
 
-			//AActor* ValveActor = GetWorld()->SpawnActor<AActor>(BP_Valve, valveFinalOffset, FRotator(0, finalRotation, 0), valveParams);
+				valveFinalOffset = randomSectorLocation + valveFinalOffset + FVector(0, 0, 70);
+				bool isBad = false;
+				for (FVector& pos : previousValves) {
+					if (FVector::Dist(pos, valveFinalOffset) < valveMinimumDistance) {
+						isBad = true;
+						break;
+					}
+				}
+				if (isBad) {
+					--i;
+					continue;
+				}
 
-			LocalParams.Emplace(BP_Valve, valveFinalOffset, FRotator(0, finalRotation, 0), valveParams);
+				previousValves.Push(valveFinalOffset);
+
+				FActorSpawnParameters valveParams;
+				valveParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				valveParams.Owner = this;
+
+				//AActor* ValveActor = GetWorld()->SpawnActor<AActor>(BP_Valve, valveFinalOffset, FRotator(0, finalRotation, 0), valveParams);
+
+				LocalParams.Emplace(BP_Valve, valveFinalOffset, FRotator(0, finalRotation, 0), valveParams);
+			}
 		}
 
 		{
@@ -640,7 +668,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 
 
 		}
-
+		++currentRoomID;
 		for (const SpawnParams& Inst : LocalParams)
 		{
 			SpawnQueue.Enqueue(Inst);
