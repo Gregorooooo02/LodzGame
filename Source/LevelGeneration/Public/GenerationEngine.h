@@ -43,6 +43,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "General Parts")
 		TSubclassOf	<AActor> RoomSegment;
+
+	UPROPERTY(EditDefaultsOnly, Category = "General Parts")
+		TSubclassOf	<AActor> AlternateRoomSegment;
+
 	UPROPERTY(EditDefaultsOnly, Category = "General Parts")
 		TSubclassOf	<AActor> Doorframe;
 	UPROPERTY(EditDefaultsOnly, Category = "General Parts")
