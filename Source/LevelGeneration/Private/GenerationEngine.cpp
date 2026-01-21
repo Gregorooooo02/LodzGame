@@ -520,7 +520,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				FVector exitPos = currentPoint + ((dimX - 0.5f) * parallelOffset) + doorPosIndex * perpendicularOffset;
 				doorIndices[0] = doorPosIndex;
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation, 0), params));
-				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation, 0), params);
+				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation + 180, 0), params);
 
 				int neighbourSegmentIndex = (dimX - 1) * dimY - (deletionHalfSum + deletedCorners[2]) + doorPosIndex;
 				LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
@@ -548,9 +548,15 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				FVector exitPos = currentPoint + ((dimY - 0.5f) * perpendicularOffset) + doorPosIndex * parallelOffset;
 				doorIndices[1] = doorPosIndex;
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation + 90, 0), params));
-				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation + 90, 0), params);
+				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation - 90, 0), params);
 				
-				int neighbourSegmentIndex = (doorPosIndex + 1) * dimY - (deletionHalfSum + 1);
+				int neighbourSegmentIndex;
+				if (doorPosIndex == dimX - 1) {
+					neighbourSegmentIndex = dimX * dimY - (deletionHalfSum + deletedCorners[2] + 1);
+				}
+				else {
+					neighbourSegmentIndex = (doorPosIndex + 1) * dimY - (deletionHalfSum + 1);
+				}
 				LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
 
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams));
@@ -574,7 +580,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				FVector exitPos = currentPoint - 0.5f * perpendicularOffset + doorPosIndex * parallelOffset;
 				doorIndices[2] = doorPosIndex;
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Doorframe, exitPos, FRotator(0, rotation - 90, 0), params));
-				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation - 90, 0), params);
+				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation + 90, 0), params);
 
 				int neighbourSegmentIndex = doorPosIndex * dimY - deletionHalfSum;
 				LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
