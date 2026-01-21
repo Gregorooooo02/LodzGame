@@ -121,6 +121,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "General Parts")
 		TSubclassOf<AActor> finalRoom;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
+		bool alternateSegmentForward = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
+		bool alternateSegmentSides = false;
 
 protected:
 	// Called when the game starts or when spawned

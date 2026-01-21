@@ -358,6 +358,10 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 			}
 		}
 
+		if (alternateSegmentForward) {
+			LocalParams[offset - deletedCorners[0]].ActorToSpawn = AlternateRoomSegment;
+		}
+
 		TArray<FVector> previousValves;
 		for (uint32 i = 0; i < valvesPerRoom; i++) {
 			FVector randomSectorLocation = SitesPoints[FMath::Rand() % SitesPoints.Num()];
@@ -523,7 +527,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation + 180, 0), params);
 
 				int neighbourSegmentIndex = (dimX - 1) * dimY - (deletionHalfSum + deletedCorners[2]) + doorPosIndex;
-				LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
+				if (alternateSegmentForward)LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
 				
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation, 0), Coridorparams));
 				int32 optionalRoomRoll = (FMath::Rand() % 100);
@@ -557,7 +561,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				else {
 					neighbourSegmentIndex = (doorPosIndex + 1) * dimY - (deletionHalfSum + 1);
 				}
-				LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
+				if(alternateSegmentSides) LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
 
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams));
 				int32 optionalRoomRoll = (FMath::Rand() % 100);
@@ -583,7 +587,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation + 90, 0), params);
 
 				int neighbourSegmentIndex = doorPosIndex * dimY - deletionHalfSum;
-				LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
+				if (alternateSegmentSides)LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
 
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams));
 				int32 optionalRoomRoll = (FMath::Rand() % 100);
