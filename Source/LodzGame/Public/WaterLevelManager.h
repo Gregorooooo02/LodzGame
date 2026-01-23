@@ -6,6 +6,18 @@
 #include "GameFramework/Actor.h"
 #include "WaterLevelManager.generated.h"
 
+USTRUCT(BlueprintType)
+struct FRoomWaterSettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Settings")
+	float MaxWaterLevel = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Settings")
+	float RisingSpeed = 0.0f;
+};
+
 UCLASS()
 class LODZGAME_API AWaterLevelManager : public AActor
 {
@@ -15,18 +27,22 @@ public:
 	AWaterLevelManager();
 	virtual void Tick(float DeltaTime) override;
 
+	// Room-specific water settings
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Settings")
+	TArray<FRoomWaterSettings> RoomWaterSettings;
+
 	// Water settings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Settings")
 	float WaterLevel = 0.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Settings")
-	float MaxWaterLevel = 100.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Water Settings")
+	float MaxWaterLevel = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Settings")
 	float MinWaterLevel = -100.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Settings")
-	float RisingSpeed = 10.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Water Settings")
+	float RisingSpeed = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Settings")
 	float LoweringSpeed = 50.0f;
@@ -46,6 +62,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Water")
 	void StopLowering();
+
+	UFUNCTION(BlueprintCallable, Category = "Water")
+	void UpdateMaxWaterLevelForRoom(int RoomID);
 
 protected:
 	virtual void BeginPlay() override;

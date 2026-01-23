@@ -115,8 +115,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Generation Parameters")
 		double valveMinimumDistance = 500.0;
 
-	UPROPERTY(EditAnywhere, Category = "Readonly")
-		uint32 currentRoomID = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Readonly")
+		int currentRoomID = 0;
 
 	UPROPERTY(EditDefaultsOnly, Category = "General Parts")
 		TSubclassOf<AActor> finalRoom;
