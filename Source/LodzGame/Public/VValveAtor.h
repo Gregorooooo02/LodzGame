@@ -52,6 +52,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valve Settings")
 	float MinRotationSpeed = 0.5f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valve Settings")
+	float MaxRotationSpeed = 10.0f;
+
 	// Public functions to use in Blueprints
 	UFUNCTION(BlueprintCallable, Category = "Valve")
 	void TryStartInteraction(class APlayerController* PlayerController);
@@ -62,11 +65,32 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Valve")
 	bool CanInteract() const { return !bIsInteracting && !bValveDetached; }
 
+	UFUNCTION(BlueprintPure, Category = "Valve")
+	float GetRotationSpeed() const;
+
+	UFUNCTION(BlueprintPure, Category = "Valve")
+	float GetRawRotationSpeed() const { return CurrentRotationSpeed; }
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Valve|Audio")
+	void OnInteractionStarted();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Valve|Audio")
+	void OnInteractionStopped();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Valve|Audio")
+	void OnRotationSpeedChanged(float speed);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Valve|Audio")
+	void OnDetach();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valve Settings")
 	bool bValveDetached = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float CurrentRotation = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float CurrentRotationSpeed = 0.0f;
 	
 protected:
 	// Internal functions

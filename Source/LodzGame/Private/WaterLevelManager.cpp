@@ -87,6 +87,28 @@ void AWaterLevelManager::StopLowering()
 	bIsRising = true;
 }
 
+void AWaterLevelManager::UpdateMaxWaterLevelForRoom(int RoomID) 
+{
+	FRoomWaterSettings CurrentSettings;
+
+	if (RoomID >= 0 && RoomID < 3) {
+		CurrentSettings = RoomWaterSettings.IsValidIndex(0) ? RoomWaterSettings[0] : FRoomWaterSettings();
+	}
+	else if (RoomID >= 3 && RoomID < 6) {
+		CurrentSettings = RoomWaterSettings.IsValidIndex(1) ? RoomWaterSettings[1] : FRoomWaterSettings();
+	}
+	else if (RoomID >= 6) {
+		CurrentSettings = RoomWaterSettings.IsValidIndex(2) ? RoomWaterSettings[2] : FRoomWaterSettings();
+	}
+	
+	MaxWaterLevel = CurrentSettings.MaxWaterLevel;
+	RisingSpeed = CurrentSettings.RisingSpeed;
+
+	if (bIsRising) {
+		TargetWaterLevel = MaxWaterLevel;
+	}
+}
+
 void AWaterLevelManager::UpdateWaterPosition()
 {
 	if (WaterBody && IsValid(WaterBody))

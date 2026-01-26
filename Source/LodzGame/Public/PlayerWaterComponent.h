@@ -31,6 +31,9 @@ public:
 	float MinGravityMultiplier = 0.5f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Slowdown")
+	float MinAnimationSpeedMultiplier = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Slowdown")
 	class AWaterLevelManager* WaterManager = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Slowdown")
@@ -44,6 +47,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Water Slowdown")
 	float CurrentSubmersionLevel = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Water Slowdown")
+	float CurrentAnimationSpeedMultiplier = 1.0f;
 
 protected:
 	virtual void BeginPlay() override;
@@ -59,6 +65,6 @@ private:
 	float CurrentGravityMultiplier = 1.0f;
 	
 	float CalculateSubmersionLevel();
-	void UpdateSwimmingState(float SubmersionLevel);
 	void UpdateMovementSpeed(float SubmersionLevel, float DeltaTime);
+	void UpdateAnimationSpeed(float SubmersionLevel, float DeltaTime);
 };

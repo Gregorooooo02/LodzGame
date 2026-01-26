@@ -64,6 +64,7 @@ void UPlayerWaterComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	MovementComponent->GravityScale = DefaultGravityScale * CurrentGravityMultiplier;
 
 	UpdateMovementSpeed(SubmersionLevel, DeltaTime);
+	UpdateAnimationSpeed(SubmersionLevel, DeltaTime);
 }
 
 void UPlayerWaterComponent::UpdateMovementSpeed(float SubmersionLevel, float DeltaTime)
@@ -95,6 +96,19 @@ void UPlayerWaterComponent::UpdateMovementSpeed(float SubmersionLevel, float Del
 	// Set both walk and swim speed to ensure proper behavior in both modes
 	MovementComponent->MaxWalkSpeed = DesiredSpeed;
 	MovementComponent->MaxSwimSpeed = DesiredSpeed;
+}
+
+void UPlayerWaterComponent::UpdateAnimationSpeed(float SubmersionLevel, float DeltaTime) 
+{
+	if (SubmersionLevel >= 0.01f)
+	{
+		float TargetAnimSpeed = FMath::Lerp(1.0f, MinAnimationSpeedMultiplier, SubmersionLevel);
+		CurrentAnimationSpeedMultiplier = FMath::FInterpTo(CurrentAnimationSpeedMultiplier, TargetAnimSpeed, DeltaTime, TransitionSpeed);
+	}
+	else
+	{
+		CurrentAnimationSpeedMultiplier = FMath::FInterpTo(CurrentAnimationSpeedMultiplier, 1.0f, DeltaTime, TransitionSpeed);
+	}
 }
 
 float UPlayerWaterComponent::CalculateSubmersionLevel()

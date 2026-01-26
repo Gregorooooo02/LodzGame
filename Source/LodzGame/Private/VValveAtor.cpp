@@ -108,6 +108,8 @@ void AVValveAtor::Tick(float DeltaTime)
 	{
 		RotateValve(MouseDeltaX, MouseDeltaY);
 	}
+
+	OnRotationSpeedChanged(GetRotationSpeed());
 }
 
 void AVValveAtor::TryStartInteraction(APlayerController* PlayerController)
@@ -146,6 +148,8 @@ void AVValveAtor::TryStartInteraction(APlayerController* PlayerController)
 	PlayerController->SetInputMode(InputMode);
 
 	UE_LOG(LogTemp, Warning, TEXT("Valve interaction started! Player: %s"), *PlayerController->GetName());
+
+	OnInteractionStarted();
 }
 
 void AVValveAtor::StopInteraction()
@@ -170,10 +174,14 @@ void AVValveAtor::StopInteraction()
 		InteractingPlayer->SetInputMode(InputMode);
 	}
 
+	CurrentRotationSpeed = 0.0f;
+
 	bIsInteracting = false;
 	InteractingPlayer = nullptr;
 
 	UE_LOG(LogTemp, Warning, TEXT("Valve interaction stopped! Camera should be unlocked now."));
+
+	OnInteractionStopped();
 }
 
 void AVValveAtor::RotateValve(float MouseDeltaX, float MouseDeltaY)
@@ -187,6 +195,8 @@ void AVValveAtor::RotateValve(float MouseDeltaX, float MouseDeltaY)
 	FVector2D CurrentMousePosition(MouseX, MouseY);
 
 	float RotationDelta = CalculateRotationAngle(CurrentMousePosition, LastMousePosition);
+
+	CurrentRotationSpeed = FMath::Lerp(CurrentRotationSpeed, FMath::Abs(RotationDelta), 0.3f);
 	
 	// Only allow clockwise rotation (positive values)
 	if (RotationDelta > MinRotationSpeed)
@@ -203,6 +213,11 @@ void AVValveAtor::RotateValve(float MouseDeltaX, float MouseDeltaY)
 				FString::Printf(TEXT("Rotation: %.1f / %.1f"), CurrentRotation, RequiredRotation));
 		}
 	}
+	else 
+	{
+		// Gradually slow down rotation speed when not turning
+		CurrentRotationSpeed = FMath::Lerp(CurrentRotationSpeed, 0.0f, 0.1f);
+	}
 
 	LastMousePosition = CurrentMousePosition;
 
@@ -210,6 +225,16 @@ void AVValveAtor::RotateValve(float MouseDeltaX, float MouseDeltaY)
 	{
 		DetachValve();
 	}
+}
+
+float AVValveAtor::GetRotationSpeed() const
+{
+	if (!bIsInteracting)
+	{
+		return 0.0f;
+	}
+	float NormalizedSpeed = FMath::Clamp(CurrentRotationSpeed / MaxRotationSpeed, 0.0f, 1.0f);
+	return NormalizedSpeed;
 }
 
 float AVValveAtor::CalculateRotationAngle(FVector2D CurrentPos, FVector2D PreviousPos)
@@ -308,6 +333,8 @@ void AVValveAtor::DetachValve()
 
 	LowerWaterLevel();
 	PrimaryActorTick.bCanEverTick = false;
+
+	OnDetach();
 }
 
 void AVValveAtor::LowerWaterLevel()
