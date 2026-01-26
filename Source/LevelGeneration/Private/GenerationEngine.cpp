@@ -339,7 +339,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				if ((i == 0 || i == dimX - 1) && (j == 0 || j == dimY - 1)) {
 					int32 segmentDeletionRoll = (FMath::Rand() % 100);
 					if (segmentDeletionRoll > segmentDeletionChance) {
-						LocalParams.Emplace(RoomSegment, currentPoint + (i * parallelOffset) + (j * perpendicularOffset), FRotator::ZeroRotator, params);
+						LocalParams.Emplace(RoomSegment, currentPoint + (i * parallelOffset) + (j * perpendicularOffset), FRotator(0,rotation,0), params);
 						//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(RoomSegment, currentPoint + (i * parallelOffset) + (j * perpendicularOffset), FRotator::ZeroRotator, params));
 						int indexX = (i == 0 ? -0.5f : i + 0.5f);
 						int indexY = (j == 0 ? -0.5f : j + 0.5f);
@@ -351,7 +351,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 					deletionCounter++;
 				}
 				else {
-					LocalParams.Emplace(RoomSegment, currentPoint + (i * parallelOffset) + (j * perpendicularOffset), FRotator::ZeroRotator, params);
+					LocalParams.Emplace(RoomSegment, currentPoint + (i * parallelOffset) + (j * perpendicularOffset), FRotator(0, rotation, 0), params);
 					//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(RoomSegment, currentPoint + (i * parallelOffset) + (j * perpendicularOffset), FRotator::ZeroRotator, params));
 					SitesPoints.Add(currentPoint + (i * parallelOffset) + (j * perpendicularOffset));
 				}
@@ -360,6 +360,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 
 		if (alternateSegmentForward) {
 			LocalParams[offset - deletedCorners[0]].ActorToSpawn = AlternateRoomSegment;
+			LocalParams[offset - deletedCorners[0]].rotation.Add(0, 90, 0);
 		}
 
 		TArray<FVector> previousValves;
@@ -527,7 +528,10 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation + 180, 0), params);
 
 				int neighbourSegmentIndex = (dimX - 1) * dimY - (deletionHalfSum + deletedCorners[2]) + doorPosIndex;
-				if (alternateSegmentForward)LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
+				if (alternateSegmentForward) {
+					LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
+					LocalParams[neighbourSegmentIndex].rotation.Add(0, 270, 0);
+				}
 				
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation, 0), Coridorparams));
 				int32 optionalRoomRoll = (FMath::Rand() % 100);
@@ -587,7 +591,11 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				LocalParams.Emplace(Doorframe, exitPos, FRotator(0, rotation + 90, 0), params);
 
 				int neighbourSegmentIndex = doorPosIndex * dimY - deletionHalfSum;
-				if (alternateSegmentSides)LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
+				if (alternateSegmentSides) {
+					if (neighbourSegmentIndex < 0)neighbourSegmentIndex = 0;
+					LocalParams[neighbourSegmentIndex].ActorToSpawn = AlternateRoomSegment;
+					LocalParams[neighbourSegmentIndex].rotation.Add(0, 180, 0);
+				}
 
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams));
 				int32 optionalRoomRoll = (FMath::Rand() % 100);
