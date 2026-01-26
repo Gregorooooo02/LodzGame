@@ -52,11 +52,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Water")
 	float GetWaterDepth() const { return CurrentWaterDepth; }
 
-	//UFUNCTION(BlueprintPure, Category = "Water")
-	//float GetNormalizedWaterDepth();
+	UFUNCTION(BlueprintPure, Category = "Water")
+	float GetNormalizedWaterDepth();
 
-	//UFUNCTION(BlueprintPure, Category = "Water")
-	//int GetWaterDepthCategory();
+	UFUNCTION(BlueprintPure, Category = "Water")
+	int GetWaterDepthCategory();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Water|Events")
 	void OnEnterWater(float Depth);
