@@ -123,10 +123,10 @@ void UPlayerWaterAudio::CalculateWaterDepth()
 
 	CurrentWaterDepth = FMath::Max(0.0f, WaterSurfaceZ - FeetLocation.Z);
 
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Cyan, FString::Printf(TEXT("Water Depth: %.2f"), CurrentWaterDepth));
-	}
+	//if (GEngine)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Cyan, FString::Printf(TEXT("Water Depth: %.2f"), CurrentWaterDepth));
+	//}
 }
 
 float UPlayerWaterAudio::GetNormalizedWaterDepth()
