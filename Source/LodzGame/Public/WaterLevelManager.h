@@ -53,6 +53,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Water Settings")
 	bool bUseWaterGenerator = true;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Water Settings")
+	bool bIsLowering = false;
+
+	// Events
+	UFUNCTION(BlueprintImplementableEvent, Category = "Water|Events")
+	void OnWaterLowering();
+
 	// Functions
 	UFUNCTION(BlueprintCallable, Category = "Water")
 	void LowerWater(float Amount);
@@ -71,7 +78,6 @@ protected:
 
 private:
 	float TargetWaterLevel = 0.0f;
-	bool bIsLowering = false;
 	bool bIsRising = true;
 	float StartWaterLevel = 0.0f;
 	

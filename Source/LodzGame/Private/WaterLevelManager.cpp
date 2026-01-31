@@ -79,6 +79,9 @@ void AWaterLevelManager::StartLowering(float Amount)
 	
 	bIsLowering = true;
 	bIsRising = false;
+
+	// Trigger Blueprint event
+	OnWaterLowering();
 }
 
 void AWaterLevelManager::StopLowering()
