@@ -535,7 +535,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation, 0), Coridorparams));
 				int32 optionalRoomRoll = (FMath::Rand() % 100);
-				if (optionalRoomRoll > optionalRoomSpawnChance && maxRooms > 0) {
+				if (optionalRoomRoll < optionalRoomSpawnChance && maxRooms > 0) {
 					int roomIndex = FMath::Rand() % OptionalRooms.Num();
 					LocalParams.Emplace(OptionalRooms[roomIndex], exitPos, FRotator(0, rotation, 0), Coridorparams);
 					maxRooms--;
@@ -569,7 +569,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams));
 				int32 optionalRoomRoll = (FMath::Rand() % 100);
-				if (optionalRoomRoll > optionalRoomSpawnChance && maxRooms > 0) {
+				if (optionalRoomRoll < optionalRoomSpawnChance && maxRooms > 0) {
 					int roomIndex = FMath::Rand() % OptionalRooms.Num();
 					LocalParams.Emplace(OptionalRooms[roomIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams);
 					maxRooms--;
@@ -599,7 +599,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams));
 				int32 optionalRoomRoll = (FMath::Rand() % 100);
-				if (optionalRoomRoll > optionalRoomSpawnChance && maxRooms > 0) {
+				if (optionalRoomRoll < optionalRoomSpawnChance && maxRooms > 0) {
 					int roomIndex = FMath::Rand() % OptionalRooms.Num();
 					LocalParams.Emplace(OptionalRooms[roomIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams);
 					maxRooms--;
