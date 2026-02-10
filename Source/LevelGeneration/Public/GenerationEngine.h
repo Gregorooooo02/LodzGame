@@ -84,9 +84,13 @@ public:
 		uint32 maxBoxSpawnAttemps = 3;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
-		TArray<TSubclassOf<ABaseBox>> Boxes;
+		TArray<TSubclassOf<ABaseBox>> PlatformBoxes;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
+		TArray<TSubclassOf<ABaseBox>> PickableBoxes;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
+		float minBoxSpawnHeight = 25.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Box Parameters")
 		float maxBoxIslandStartSize = 50.0f;
