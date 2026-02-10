@@ -80,6 +80,7 @@ private:
 	float TargetWaterLevel = 0.0f;
 	bool bIsRising = true;
 	float StartWaterLevel = 0.0f;
+	bool bFinalCorridorLevel = false;
 	
 	void UpdateWaterPosition();
 	AActor* FindWaterGenerator();

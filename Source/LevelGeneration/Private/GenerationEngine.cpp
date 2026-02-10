@@ -302,6 +302,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		params.spawningParams = SpawnParams;
 		SpawnQueue.Enqueue(params);
+		currentRoomID = -1;
 		return;
 	}
 
@@ -430,7 +431,9 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 		{
 			FActorSpawnParameters BoxParams;
 			BoxParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-			FVector verticalOffset(0,0,waterLevel);
+
+			float newWaterLevel = waterLevel > minBoxSpawnHeight ? waterLevel : minBoxSpawnHeight;
+			FVector verticalOffset(0,0, newWaterLevel);
 
 			for (int i = 0; i < SitesPoints.Num(); i++) {
 				FVector2D voronoiOffset = FMath::RandPointInCircle(maxVoronoiOffset);
@@ -438,22 +441,24 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				SitesPoints[i].Y += voronoiOffset.Y;
 				//SitesPoints[i] += FVector(0, 0, 50);
 			}
-			int boxVariantCount = Boxes.Num();
+			int boxPlatformVariantCount = PlatformBoxes.Num();
+			int boxPickableVariantCount = PickableBoxes.Num();
 			for (int i = 0; i < SitesPoints.Num(); i++) {
 				int boxCount = (FMath::Rand() % (maxBoxCount - minBoxCount)) + minBoxCount;
 				std::vector<float> spawnedBoxRadii;
 				std::vector<FVector> spawnedBoxPositions;
 
-				TSubclassOf<ABaseBox> firstBox = Boxes[FMath::Rand() % boxVariantCount];
+				TSubclassOf<ABaseBox> pickableBox = PickableBoxes[FMath::Rand() % boxPickableVariantCount];
+				LocalParams.Emplace(pickableBox, SitesPoints[i] + verticalOffset + FVector(0,0,100), FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
+
+				TSubclassOf<ABaseBox> firstBox = PlatformBoxes[FMath::Rand() % boxPlatformVariantCount];
 				LocalParams.Emplace(firstBox, SitesPoints[i] + verticalOffset, FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
-				//AActor* firstBoxPtr = GetWorld()->SpawnActor<AActor>(firstBox, SitesPoints[i], FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
-				//RoomSegments.push_back(firstBoxPtr);
 				float radiusCenter = firstBox->GetDefaultObject<ABaseBox>()->boxSize;
 				spawnedBoxPositions.push_back(SitesPoints[i]);
 				spawnedBoxRadii.push_back(radiusCenter);
 
 				for (int j = 0; j < (boxCount - 1); j++) {
-					TSubclassOf<ABaseBox> thirdBox = Boxes[FMath::Rand() % boxVariantCount];
+					TSubclassOf<ABaseBox> thirdBox = PlatformBoxes[FMath::Rand() % boxPlatformVariantCount];
 					float radiusThird = thirdBox->GetDefaultObject<ABaseBox>()->boxSize;
 					float currentSearchRange = maxBoxIslandStartSize;
 					for (uint32 k = 0; k < maxBoxSpawnAttemps; k++) {
@@ -468,11 +473,10 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 							}
 						}
 						if (isGood) {
-							//AActor* newBoxPtr = GetWorld()->SpawnActor<AActor>(thirdBox, newPosition, FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
-							//RoomSegments.push_back(newBoxPtr);
 							LocalParams.Emplace(thirdBox, newPosition + verticalOffset, FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
 							spawnedBoxPositions.push_back(newPosition);
 							spawnedBoxRadii.push_back(radiusThird);
+							break;
 						}
 					}
 
@@ -535,7 +539,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 				
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation, 0), Coridorparams));
 				int32 optionalRoomRoll = (FMath::Rand() % 100);
-				if (optionalRoomRoll > optionalRoomSpawnChance && maxRooms > 0) {
+				if (optionalRoomRoll < optionalRoomSpawnChance && maxRooms > 0) {
 					int roomIndex = FMath::Rand() % OptionalRooms.Num();
 					LocalParams.Emplace(OptionalRooms[roomIndex], exitPos, FRotator(0, rotation, 0), Coridorparams);
 					maxRooms--;
@@ -569,7 +573,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams));
 				int32 optionalRoomRoll = (FMath::Rand() % 100);
-				if (optionalRoomRoll > optionalRoomSpawnChance && maxRooms > 0) {
+				if (optionalRoomRoll < optionalRoomSpawnChance && maxRooms > 0) {
 					int roomIndex = FMath::Rand() % OptionalRooms.Num();
 					LocalParams.Emplace(OptionalRooms[roomIndex], exitPos, FRotator(0, rotation + 90, 0), Coridorparams);
 					maxRooms--;
@@ -599,7 +603,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 
 				//RoomSegments.push_back(GetWorld()->SpawnActor<AActor>(Coridors[coridorIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams));
 				int32 optionalRoomRoll = (FMath::Rand() % 100);
-				if (optionalRoomRoll > optionalRoomSpawnChance && maxRooms > 0) {
+				if (optionalRoomRoll < optionalRoomSpawnChance && maxRooms > 0) {
 					int roomIndex = FMath::Rand() % OptionalRooms.Num();
 					LocalParams.Emplace(OptionalRooms[roomIndex], exitPos, FRotator(0, rotation - 90, 0), Coridorparams);
 					maxRooms--;
@@ -773,13 +777,13 @@ void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations)
 		SegmentLocations[i].Y += offset.Y;
 		SegmentLocations[i] += FVector(0, 0, 50);
 	}
-	int boxVariantCount = Boxes.Num();
+	int boxVariantCount = PlatformBoxes.Num();
 	for (int i = 0; i < SegmentLocations.Num(); i++) {
 		int boxCount = (FMath::Rand() % (maxBoxCount - minBoxCount)) + minBoxCount;
 		std::vector<float> spawnedBoxRadii;
 		std::vector<FVector> spawnedBoxPositions;
 
-		TSubclassOf<ABaseBox> firstBox = Boxes[FMath::Rand() % boxVariantCount];
+		TSubclassOf<ABaseBox> firstBox = PlatformBoxes[FMath::Rand() % boxVariantCount];
 		AActor* firstBoxPtr = GetWorld()->SpawnActor<AActor>(firstBox, SegmentLocations[i], FRotator(0, FMath::RandRange(0.0, 360.0), 0), BoxParams);
 		float radiusCenter = firstBox->GetDefaultObject<ABaseBox>()->boxSize;
 		RoomSegments.push_back(firstBoxPtr);
@@ -787,7 +791,7 @@ void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations)
 		spawnedBoxRadii.push_back(radiusCenter);
 
 		for (int j = 0; j < (boxCount - 1); j++) {
-			TSubclassOf<ABaseBox> thirdBox = Boxes[FMath::Rand() % boxVariantCount];
+			TSubclassOf<ABaseBox> thirdBox = PlatformBoxes[FMath::Rand() % boxVariantCount];
 			float radiusThird = thirdBox->GetDefaultObject<ABaseBox>()->boxSize;
 			float currentSearchRange = maxBoxIslandStartSize;
 			for (uint32 k = 0; k < maxBoxSpawnAttemps; k++) {
@@ -806,6 +810,7 @@ void AGenerationEngine::GenerateBoxIslands(TArray<FVector>& SegmentLocations)
 					RoomSegments.push_back(newBoxPtr);
 					spawnedBoxPositions.push_back(newPosition);
 					spawnedBoxRadii.push_back(radiusThird);
+					break;
 				}
 			}
 			

@@ -43,6 +43,7 @@ void AWaterLevelManager::Tick(float DeltaTime)
 			WaterLevel = TargetWaterLevel;
 			bIsLowering = false;
 			bIsRising = true; // Resume rising after lowering is done
+			if (bFinalCorridorLevel)MaxWaterLevel = -25;
 		}
 	}
 	else if (bIsRising)
@@ -106,6 +107,11 @@ void AWaterLevelManager::UpdateMaxWaterLevelForRoom(int RoomID)
 	
 	MaxWaterLevel = CurrentSettings.MaxWaterLevel;
 	RisingSpeed = CurrentSettings.RisingSpeed;
+
+	if (RoomID == -1) {
+		StartLowering(WaterLevel + 25);
+		bFinalCorridorLevel = true;
+	}
 
 	if (bIsRising) {
 		TargetWaterLevel = MaxWaterLevel;
