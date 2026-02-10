@@ -302,6 +302,7 @@ void AGenerationEngine::SpawnNextRoomAsync(USceneComponent* exitPosition, AActor
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		params.spawningParams = SpawnParams;
 		SpawnQueue.Enqueue(params);
+		currentRoomID = -1;
 		return;
 	}
 
