@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GenerationEngine.h"
-#include <UMG.h>
+#include "Kismet/GameplayStatics.h"
+#include "NavMesh/NavMeshBoundsVolume.h"
 #include <NavigationSystem.h>
 #include "NavMesh/RecastNavMesh.h"
 #include "NavMesh/NavMeshBoundsVolume.h"
